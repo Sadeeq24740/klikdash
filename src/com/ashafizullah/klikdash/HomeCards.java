@@ -9,8 +9,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -1002,7 +1000,7 @@ final class HomeCards {
     private static final Set<String> loading = new HashSet<>();
     private static final ExecutorService TILE_NET = Executors.newFixedThreadPool(2);
 
-    /** Peta gelap di sekitar posisi sekarang dengan panah arah; ketuk untuk membuka aplikasi peta. */
+    /** Peta (CARTO dark/light, data OpenStreetMap) di sekitar posisi sekarang dengan panah arah; ketuk untuk membuka aplikasi peta. */
     final class MapView extends View {
         double lat = Double.NaN, lon;
         float bearing;
@@ -1025,48 +1023,82 @@ final class HomeCards {
             });
         }
 
-        /** Posisi dan arah yang terakhir digambar: fix GPS tiap detik hanya menggambar ulang bila petanya bergeser. */
-        double drawnLat = Double.NaN, drawnLon;
-        float drawnBearing;
+        /** Peta mini bisa dimatikan (panel cepat): kartu tetap ada dengan tombol Rumah/Pejabat, tanpa unduhan ubin. */
+        final boolean on = h.prefs.getBoolean("miniMap", true);
+        /** Posisi panah dan arah yang terakhir digambar: fix GPS tiap detik hanya menggambar ulang bila panahnya bergeser. */
+        float drawnX = Float.NaN, drawnY, drawnBearing;
+        /**
+         * Peta digambar sekali ke satu bitmap seukuran kartu; tiap frame hanya bitmap itu + panah. Digambar ulang hanya
+         * bila panah sudah jauh dari tengah (±25% kartu, ±300 m di zoom 16), ubin baru tiba, atau ukurannya berubah.
+         */
+        Bitmap snap;
+        double snapFx, snapFy;
+        boolean dirty = true;
+        final Runnable tilesArrived = this::invalidate;
+
+        void tilesChanged() {
+            dirty = true;
+            removeCallbacks(tilesArrived);
+            postDelayed(tilesArrived, 600); // ubin datang beruntun: digabung jadi sekali gambar ulang
+        }
 
         void fix(Location l, int kmh) {
             lat = l.getLatitude();
             lon = l.getLongitude();
             if (kmh >= 5 && l.hasBearing()) bearing = l.getBearing();
-            // ±2 piksel di zoom 16 ≈ 5 m; arah berubah ≥ 4°.
-            boolean moved = Double.isNaN(drawnLat) || Math.abs(lat - drawnLat) > 4e-5 || Math.abs(lon - drawnLon) > 4e-5;
+            int w = getWidth(), ht = getHeight();
+            if (w == 0) return;
+            float[] at = arrowAt(w, ht);
             float turn = Math.abs(((bearing - drawnBearing) % 360 + 540) % 360 - 180);
-            if (moved || turn >= 4) invalidate();
+            if (Float.isNaN(drawnX) || Math.abs(at[0] - drawnX) >= 2 || Math.abs(at[1] - drawnY) >= 2 || turn >= 4) invalidate();
+        }
+
+        private final float[] at = new float[2];
+
+        /** Posisi panah di kartu untuk lokasi sekarang, relatif ke peta yang sedang tergambar. */
+        float[] arrowAt(int w, int ht) {
+            float ox = w / 2f, oy = ht * .55f;
+            at[0] = ox;
+            at[1] = oy;
+            if (!on || snap == null || Double.isNaN(lat)) return at;
+            double[] f = tileXY(lat, lon);
+            int size = tileSize();
+            at[0] = ox + (float) ((f[0] - snapFx) * size);
+            at[1] = oy + (float) ((f[1] - snapFy) * size);
+            return at;
+        }
+
+        int tileSize() { return Math.round(256 * Math.max(1f, h.dp * .85f)); }
+
+        double[] tileXY(double la, double lo) {
+            int n = 1 << ZOOM;
+            double rad = Math.toRadians(la);
+            return new double[]{(lo + 180) / 360 * n, (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * n};
         }
 
         @Override protected void onDraw(Canvas c) {
             int w = getWidth(), ht = getHeight();
-            drawnLat = lat;
-            drawnLon = lon;
-            drawnBearing = bearing;
-            // Sudut bulat dari kartu (setClipToOutline): clipPath di sini mahal di GPU headunit.
-            c.drawColor(Theme.light() ? 0xFFE8E6E1 : 0xFF161A20);
+            if (w == 0 || ht == 0) return;
             double la = !Double.isNaN(lat) ? lat : h.loc.lat, lo = !Double.isNaN(lat) ? lon : h.loc.lon;
-            if (la == 0 && lo == 0) return;
-            int n = 1 << ZOOM;
-            double fx = (lo + 180) / 360 * n;
-            double rad = Math.toRadians(la);
-            double fy = (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * n;
-            int size = Math.round(256 * Math.max(1f, h.dp * .85f));
-            // Posisi sedikit di bawah tengah: jalan di depan lebih banyak terlihat, dan tidak tertutup label.
             float ox = w / 2f, oy = ht * .55f;
-            int x0 = (int) Math.floor(fx - ox / size) , x1 = (int) Math.floor(fx + (w - ox) / size);
-            int y0 = (int) Math.floor(fy - oy / size), y1 = (int) Math.floor(fy + (ht - oy) / size);
-            for (int ty = y0; ty <= y1; ty++) {
-                for (int tx = x0; tx <= x1; tx++) {
-                    if (ty < 0 || ty >= n) continue;
-                    int wx = ((tx % n) + n) % n;
-                    int left = Math.round(ox + (float) ((tx - fx) * size)), top = Math.round(oy + (float) ((ty - fy) * size));
-                    dst.set(left, top, left + size, top + size);
-                    Bitmap b = tileFor(wx, ty);
-                    if (b != null) c.drawBitmap(b, null, dst, tile);
+            if (on && !(la == 0 && lo == 0)) {
+                double[] f = tileXY(la, lo);
+                int size = tileSize();
+                float dx = snap == null ? 0 : (float) ((f[0] - snapFx) * size), dy = snap == null ? 0 : (float) ((f[1] - snapFy) * size);
+                if (snap == null || snap.getWidth() != w || snap.getHeight() != ht || dirty
+                        || Math.abs(dx) > w * .25f || Math.abs(dy) > ht * .25f) {
+                    build(w, ht, f[0], f[1], size);
                 }
+                c.drawBitmap(snap, 0, 0, null);
+                ox += (float) ((f[0] - snapFx) * size);
+                oy += (float) ((f[1] - snapFy) * size);
+            } else {
+                c.drawColor(Theme.light() ? 0xFFE8E6E1 : 0xFF161A20); // sudut bulat dari kartu (setClipToOutline)
             }
+            drawnX = ox;
+            drawnY = oy;
+            drawnBearing = bearing;
+
             // Panah posisi.
             float r = h.px(15);
             p.setStyle(Paint.Style.FILL);
@@ -1088,7 +1120,34 @@ final class HomeCards {
             c.drawPath(arrow, p);
             c.restore();
             t.setColor(Theme.light() ? 0x99000000 : 0x99FFFFFF);
-            c.drawText("© OpenStreetMap", w - h.px(14), ht - h.px(66), t);
+            c.drawText(on ? "© OpenStreetMap © CARTO" : h.getString(R.string.home_map_off), w - h.px(14), ht - h.px(66), t);
+        }
+
+        /** Gambar ubin di sekitar (fx, fy) ke bitmap peta; ubin yang belum ada diunduh lalu memanggil tilesChanged. */
+        void build(int w, int ht, double fx, double fy, int size) {
+            if (snap == null || snap.getWidth() != w || snap.getHeight() != ht) {
+                if (snap != null) snap.recycle();
+                snap = Bitmap.createBitmap(w, ht, Bitmap.Config.RGB_565);
+            }
+            snapFx = fx;
+            snapFy = fy;
+            dirty = false;
+            Canvas c = new Canvas(snap);
+            c.drawColor(Theme.light() ? 0xFFE8E6E1 : 0xFF161A20);
+            int n = 1 << ZOOM;
+            float ox = w / 2f, oy = ht * .55f;
+            int x0 = (int) Math.floor(fx - ox / size), x1 = (int) Math.floor(fx + (w - ox) / size);
+            int y0 = (int) Math.floor(fy - oy / size), y1 = (int) Math.floor(fy + (ht - oy) / size);
+            for (int ty = y0; ty <= y1; ty++) {
+                for (int tx = x0; tx <= x1; tx++) {
+                    if (ty < 0 || ty >= n) continue;
+                    int wx = ((tx % n) + n) % n;
+                    int left = Math.round(ox + (float) ((tx - fx) * size)), top = Math.round(oy + (float) ((ty - fy) * size));
+                    dst.set(left, top, left + size, top + size);
+                    Bitmap b = tileFor(wx, ty);
+                    if (b != null) c.drawBitmap(b, null, dst, tile);
+                }
+            }
         }
 
         Bitmap tileFor(int x, int y) {
@@ -1101,14 +1160,16 @@ final class HomeCards {
             File dir = new File(h.createDeviceProtectedStorageContext().getCacheDir(), "osm");
             TILE_NET.execute(() -> {
                 Bitmap got = null;
-                File f = new File(dir, ZOOM + "_" + x + "_" + y + ".png");
+                File f = new File(dir, (dark ? "dark_" : "light_") + ZOOM + "_" + x + "_" + y + ".png");
                 try {
                     if (f.isFile() && System.currentTimeMillis() - f.lastModified() < 30L * 86_400_000L) {
                         got = BitmapFactory.decodeFile(f.getPath());
                     }
                     if (got == null) {
-                        HttpURLConnection c = (HttpURLConnection) new URL("https://tile.openstreetmap.org/" + key + ".png")
-                                .openConnection();
+                        // CARTO basemap (data OpenStreetMap): sudah gelap/terang, jadi tidak perlu diolah di headunit.
+                        String url = "https://" + "abcd".charAt((x + y) & 3) + ".basemaps.cartocdn.com/"
+                                + (dark ? "dark_all/" : "light_all/") + key + ".png";
+                        HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
                         c.setConnectTimeout(10_000);
                         c.setReadTimeout(15_000);
                         c.setRequestProperty("User-Agent", "KlikDash/" + version() + " (Android headunit launcher)");
@@ -1127,14 +1188,12 @@ final class HomeCards {
                     }
                 } catch (Exception ignored) { // tanpa internet: kotak kosong, dicoba lagi saat digambar ulang
                 }
-                // Digelapkan sekali di sini, bukan dengan ColorFilter tiap kali peta digambar.
-                if (got != null && dark) got = darken(got);
                 Bitmap done = got;
                 h.runOnUiThread(() -> {
                     loading.remove(mem);
                     if (done != null) {
                         TILES.put(mem, done);
-                        invalidate();
+                        tilesChanged();
                     }
                 });
             });
@@ -1161,25 +1220,6 @@ final class HomeCards {
         if (fs == null || fs.length <= 400) return;
         java.util.Arrays.sort(fs, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
         for (int i = 0; i < fs.length - 300; i++) fs[i].delete();
-    }
-
-    static Bitmap darken(Bitmap src) {
-        Bitmap out = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.RGB_565);
-        Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
-        p.setColorFilter(darkMap());
-        new Canvas(out).drawBitmap(src, 0, 0, p);
-        src.recycle();
-        return out;
-    }
-
-    /** Peta gelap: kecerahan dibalik (warna jalan tetap), lalu diredupkan sedikit. */
-    static ColorMatrixColorFilter darkMap() {
-        float r = .2126f, g = .7152f, b = .0722f, k = .82f;
-        return new ColorMatrixColorFilter(new ColorMatrix(new float[]{
-                (1 - 2 * r) * k, -2 * g * k, -2 * b * k, 0, 255 * k - 12,
-                -2 * r * k, (1 - 2 * g) * k, -2 * b * k, 0, 255 * k - 8,
-                -2 * r * k, -2 * g * k, (1 - 2 * b) * k, 0, 255 * k,
-                0, 0, 0, 1, 0}));
     }
 
     // ---------------------------------------------------------------- kartu musik

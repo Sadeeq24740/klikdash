@@ -144,4 +144,6 @@
     <string name="wx_rain">Hujan</string>
     <string name="wx_snow">Salju</string>
     <string name="wx_storm">Badai petir</string>
+    <string name="quick_minimap">PETA MINI</string>
+    <string name="home_map_off">Peta mini mati · ketuk untuk membuka peta</string>
 </resources>

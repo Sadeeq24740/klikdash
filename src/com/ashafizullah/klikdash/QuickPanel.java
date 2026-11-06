@@ -119,6 +119,14 @@ final class QuickPanel extends FrameLayout {
             SplitScreen.warn(h, h.drawer::openSplit);
         }));
 
+        // Peta mini di home: dimatikan untuk headunit yang lambat (tanpa unduhan dan gambar ubin peta).
+        boolean mapOn = h.prefs.getBoolean("miniMap", true);
+        section(R.string.quick_minimap, key(h.getString(mapOn ? R.string.settings_on : R.string.settings_off), mapOn, () -> {
+            h.prefs.edit().putBoolean("miniMap", !h.prefs.getBoolean("miniMap", true)).apply();
+            close();
+            h.recreate();
+        }));
+
         // Wallpaper home: gambar dari galeri, atau kembali ke latar gelap bawaan.
         section(R.string.quick_wallpaper, key(h.getString(R.string.quick_wallpaper_pick), false, () -> {
             close();

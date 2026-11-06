@@ -81,7 +81,6 @@ final class HomeCards {
     Slider volume, brightness;
     Weather weather;
     Arc arc;
-    Sky sky;
 
     /** Jarak trip sejak headunit menyala/bangun (meter); statis: tetap saat home dibangun ulang. */
     static double tripM;
@@ -415,88 +414,79 @@ final class HomeCards {
 
     // ---------------------------------------------------------------- kartu jam
 
+    /**
+     * Kartu kiri atas: kecepatan besar di busur (paling penting saat menyetir), lalu tanggal, jam, Hijriah, dan cuaca
+     * di sampingnya.
+     */
     View clockCard(float wDp, float hDp) {
         FrameLayout card = new FrameLayout(h);
         card.setBackground(card());
+        LinearLayout row = new LinearLayout(h);
+        row.setPadding(h.px(14), h.px(12), h.px(20), h.px(14));
+        card.addView(row, MATCH, MATCH);
+
+        // Busur kecepatan sebesar tinggi kartu (paling besar 230 dp), angka ±38% darinya.
+        float gs = Math.max(120, Math.min(230, Math.min(hDp - 26, wDp * .48f)));
+        FrameLayout gauge = new FrameLayout(h);
+        arc = new Arc();
+        gauge.addView(arc, MATCH, MATCH);
+        LinearLayout speedCol = new LinearLayout(h);
+        speedCol.setOrientation(LinearLayout.VERTICAL);
+        speedCol.setGravity(Gravity.CENTER_HORIZONTAL);
+        h.speed = h.text("--", light, gs * .36f * h.dp / h.sp, TEXT);
+        h.speed.setGravity(Gravity.CENTER);
+        h.speed.setLetterSpacing(-0.02f);
+        // Lebar dan tinggi tetap: setText tiap detik (kecepatan) hanya menggambar ulang TextView ini, tanpa meminta
+        // tata letak ulang seluruh home (TextView WRAP_CONTENT selalu requestLayout, lihat HomeActivity.show).
+        speedCol.addView(h.speed, new LinearLayout.LayoutParams(MATCH, h.px(gs * .42f)));
+        TextView unit = label(h.getString(R.string.home_speed_unit), 11, DIM);
+        speedCol.addView(unit, new LinearLayout.LayoutParams(WRAP, WRAP));
+        gauge.addView(speedCol, new FrameLayout.LayoutParams(MATCH, WRAP, Gravity.CENTER));
+        row.addView(gauge, new LinearLayout.LayoutParams(h.px(gs), MATCH));
+
         LinearLayout col = new LinearLayout(h);
         col.setOrientation(LinearLayout.VERTICAL);
-        int p = h.px(22);
-        col.setPadding(p, h.px(20), p, h.px(16));
-        card.addView(col, MATCH, MATCH);
+        LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(0, MATCH, 1f);
+        cl.leftMargin = h.px(18);
+        cl.topMargin = h.px(8);
+        row.addView(col, cl);
 
         LinearLayout dateRow = new LinearLayout(h);
-        h.day = label("", 12, TEXT & 0x00FFFFFF | 0xB3000000);
-        h.date = label("", 12, TEXT & 0x00FFFFFF | 0xB3000000);
+        h.day = label("", 11, TEXT & 0x00FFFFFF | 0xB3000000);
+        h.date = label("", 11, TEXT & 0x00FFFFFF | 0xB3000000);
         dateRow.addView(h.day);
         LinearLayout.LayoutParams dl = new LinearLayout.LayoutParams(WRAP, WRAP);
-        dl.leftMargin = h.px(8);
+        dl.leftMargin = h.px(6);
         dateRow.addView(h.date, dl);
         col.addView(dateRow);
 
-        // Jam sebesar yang muat: ±38% tinggi kartu, dan tidak lebih lebar dari kartu dikurangi ikon bulan/matahari.
-        float clockDp = Math.max(48, Math.min(hDp * .4f, (wDp - 44 - 70) / 2.6f));
+        float colW = wDp - 34 - gs - 18;
+        float clockDp = Math.max(30, Math.min(Math.min(hDp * .24f, 60), colW / 2.9f));
         LinearLayout clockRow = new LinearLayout(h);
         clockRow.setGravity(Gravity.BOTTOM);
         h.clock = h.text("00:00", light, clockDp * h.dp / h.sp, TEXT);
         h.clock.setLetterSpacing(-0.02f);
         clockRow.addView(h.clock);
-        h.ampm = h.text("", medium, 15, DIM);
+        h.ampm = h.text("", medium, 13, DIM);
         LinearLayout.LayoutParams al = new LinearLayout.LayoutParams(WRAP, WRAP);
-        al.leftMargin = h.px(10);
-        al.bottomMargin = h.px(12);
+        al.leftMargin = h.px(8);
+        al.bottomMargin = h.px(6);
         clockRow.addView(h.ampm, al);
         LinearLayout.LayoutParams crl = new LinearLayout.LayoutParams(WRAP, WRAP);
-        crl.topMargin = h.px(2);
+        crl.topMargin = h.px(8);
         col.addView(clockRow, crl);
 
-        h.hijri = h.text("", medium, Math.max(13, Math.min(17, hDp * .065f)), AMBER);
+        h.hijri = h.text("", medium, Math.max(12, Math.min(15, hDp * .055f)), AMBER);
         h.hijri.setOnClickListener(v -> h.openSettings());
-        col.addView(h.hijri);
+        LinearLayout.LayoutParams hl = new LinearLayout.LayoutParams(WRAP, WRAP);
+        hl.topMargin = h.px(6);
+        col.addView(h.hijri, hl);
 
         col.addView(new View(h), new LinearLayout.LayoutParams(1, 0, 1f));
         weather = new Weather();
-        col.addView(weather, new LinearLayout.LayoutParams(MATCH, h.px(Math.max(40, Math.min(54, hDp * .22f)))));
+        col.addView(weather, new LinearLayout.LayoutParams(MATCH, h.px(Math.max(36, Math.min(48, hDp * .19f)))));
 
-        sky = new Sky();
-        FrameLayout.LayoutParams sl = new FrameLayout.LayoutParams(h.px(56), h.px(56), Gravity.TOP | Gravity.END);
-        sl.topMargin = h.px(16);
-        sl.rightMargin = h.px(18);
-        card.addView(sky, sl);
         return card;
-    }
-
-    /** Bulan sabit setelah Maghrib sampai Subuh, matahari di antaranya. */
-    final class Sky extends View {
-        final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Path moon = new Path(), cut = new Path();
-
-        Sky() { super(h); }
-
-        @Override protected void onDraw(Canvas c) {
-            Calendar cal = Calendar.getInstance();
-            int now = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
-            int[] pray = h.loc.pray;
-            boolean night = pray == null ? now < 360 || now >= 1110 : now < pray[0] || now >= pray[3];
-            float cx = getWidth() / 2f, cy = getHeight() / 2f, r = Math.min(cx, cy) * .78f;
-            p.setColor(night ? 0xFFD9C08A : AMBER);
-            if (night) {
-                moon.rewind();
-                moon.addCircle(cx, cy, r, Path.Direction.CW);
-                cut.rewind();
-                cut.addCircle(cx + r * .55f, cy - r * .35f, r * .85f, Path.Direction.CW);
-                moon.op(cut, Path.Op.DIFFERENCE);
-                c.drawPath(moon, p);
-            } else {
-                c.drawCircle(cx, cy, r * .5f, p);
-                p.setStrokeWidth(h.px(2.5f));
-                p.setStrokeCap(Paint.Cap.ROUND);
-                for (int i = 0; i < 8; i++) {
-                    double a = Math.PI / 4 * i;
-                    c.drawLine(cx + (float) Math.cos(a) * r * .7f, cy + (float) Math.sin(a) * r * .7f,
-                            cx + (float) Math.cos(a) * r, cy + (float) Math.sin(a) * r, p);
-                }
-            }
-        }
     }
 
     // ---------------------------------------------------------------- cuaca (Open-Meteo, tanpa kunci API)
@@ -653,43 +643,14 @@ final class HomeCards {
     // ---------------------------------------------------------------- kartu kecepatan + sholat
 
     View prayerCard() {
-        LinearLayout card = new LinearLayout(h);
+        FrameLayout card = new FrameLayout(h);
         card.setBackground(card());
-        card.setPadding(h.px(14), h.px(14), h.px(22), h.px(14));
-
-        FrameLayout gauge = new FrameLayout(h);
-        arc = new Arc();
-        gauge.addView(arc, MATCH, MATCH);
-        LinearLayout speedCol = new LinearLayout(h);
-        speedCol.setOrientation(LinearLayout.VERTICAL);
-        speedCol.setGravity(Gravity.CENTER_HORIZONTAL);
-        h.speed = h.text("--", light, 40, TEXT);
-        h.speed.setGravity(Gravity.CENTER);
-        // Lebar dan tinggi tetap: setText tiap detik (kecepatan) hanya menggambar ulang TextView ini, tanpa meminta
-        // tata letak ulang seluruh home (TextView WRAP_CONTENT selalu requestLayout, lihat HomeActivity.show).
-        speedCol.addView(h.speed, new LinearLayout.LayoutParams(MATCH, h.px(48)));
-        TextView unit = label(h.getString(R.string.home_speed_unit), 10, DIM);
-        LinearLayout.LayoutParams ul = new LinearLayout.LayoutParams(WRAP, WRAP);
-        ul.topMargin = h.px(4);
-        speedCol.addView(unit, ul);
-        FrameLayout.LayoutParams scl = new FrameLayout.LayoutParams(MATCH, WRAP, Gravity.CENTER);
-        scl.bottomMargin = h.px(10);
-        gauge.addView(speedCol, scl);
-        card.addView(gauge, new LinearLayout.LayoutParams(h.px(150), MATCH));
-
-        View rule = new View(h);
-        rule.setBackgroundColor(Theme.light() ? 0x1F000000 : 0x1FFFFFFF);
-        LinearLayout.LayoutParams rl = new LinearLayout.LayoutParams(h.px(1), MATCH);
-        rl.leftMargin = h.px(14);
-        rl.rightMargin = h.px(22);
-        card.addView(rule, rl);
-
+        card.setPadding(h.px(24), h.px(16), h.px(24), h.px(14));
         Prayer p = new Prayer();
         h.prayerView = p;
-        card.addView(p, new LinearLayout.LayoutParams(0, MATCH, 1f));
+        card.addView(p, MATCH, MATCH);
         return card;
     }
-
 
     /** Fix GPS (tiap detik selama home tampil, dari HomeLocation): jarak trip, busur kecepatan, dan peta. */
     void onFix(Location l, int kmh) {
@@ -717,7 +678,10 @@ final class HomeCards {
 
     private String driveShown = "";
 
-    /** Busur kecepatan 0–160 km/j, terisi warna aksen. */
+    /** Di atas ini angka dan busur kecepatan merah (batas lebuh raya 110 km/j). */
+    static final int SPEED_HOT = 110;
+
+    /** Busur kecepatan 0–160 km/j, terisi warna aksen; jingga di atas 100, merah di atas 110. */
     final class Arc extends View {
         final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         final RectF box = new RectF();
@@ -729,7 +693,7 @@ final class HomeCards {
         }
 
         @Override protected void onDraw(Canvas c) {
-            float stroke = h.px(5), size = Math.min(getWidth(), getHeight()) - stroke * 2;
+            float stroke = h.px(8), size = Math.min(getWidth(), getHeight()) - stroke * 2;
             float cx = getWidth() / 2f, cy = getHeight() / 2f;
             box.set(cx - size / 2f, cy - size / 2f, cx + size / 2f, cy + size / 2f);
             p.setStrokeWidth(stroke);
@@ -738,7 +702,7 @@ final class HomeCards {
             boolean live = SystemClock.elapsedRealtime() - HomeLocation.lastKmhAt < 5000;
             int kmh = live ? HomeLocation.lastKmh : 0;
             if (kmh > 0) {
-                p.setColor(kmh > 100 ? WARN : AMBER);
+                p.setColor(kmh > SPEED_HOT ? HomeActivity.HOT : kmh > 100 ? WARN : AMBER);
                 c.drawArc(box, 135, 270 * Math.min(1f, kmh / 160f), false, p);
             }
         }
@@ -751,6 +715,18 @@ final class HomeCards {
         final RectF box = new RectF();
 
         Prayer() { super(HomeCards.this.h, 1); }
+
+        private Shader bar;
+        private int barW, barColor;
+
+        Shader barShader(int w) {
+            if (bar == null || barW != w || barColor != AMBER) {
+                barW = w;
+                barColor = AMBER;
+                bar = new LinearGradient(0, 0, w, 0, (AMBER & 0x00FFFFFF) | 0x66000000, AMBER, Shader.TileMode.CLAMP);
+            }
+            return bar;
+        }
 
         /** Hitung mundur per menit: digambar ulang oleh updateTime, bukan tiap detik. */
         @Override void startTicking() { invalidate(); }
@@ -806,8 +782,34 @@ final class HomeCards {
             String in = left >= 60 ? h.getString(R.string.home_in_hm, left / 60, left % 60) : h.getString(R.string.home_in_m, left);
             c.drawText(in, 0, nameBase + t.getTextSize() + h.px(8), t);
 
-            // Chip lima waktu di bawah.
-            float chipH = Math.min(h.px(76), ht * .36f), top = ht - chipH, col = w / 5f;
+            // Chip lima waktu di bawah, bar kemajuan dari waktu sebelumnya ke waktu berikutnya di atasnya.
+            float chipH = Math.min(h.px(70), ht * .3f), top = ht - chipH, col = w / 5f;
+            int prevIdx = next > 0 ? next - 1 : 4;
+            int prev = next > 0 ? pray[next - 1] : next == 0 ? pray[4] - 1440 : pray[4];
+            float frac = Math.max(0f, Math.min(1f, (now - prev) / (float) Math.max(1, target - prev)));
+            float barY = top - h.px(34), bh = h.px(3);
+            box.set(0, barY - bh, w, barY + bh);
+            p.setStyle(Paint.Style.FILL);
+            p.setColor(Theme.light() ? 0x1F000000 : 0x24FFFFFF);
+            c.drawRoundRect(box, bh, bh, p);
+            float fx = Math.max(bh * 2, w * frac);
+            p.setShader(barShader(w));
+            box.set(0, barY - bh, fx, barY + bh);
+            c.drawRoundRect(box, bh, bh, p);
+            p.setShader(null);
+            p.setColor((AMBER & 0x00FFFFFF) | 0x40000000);
+            c.drawCircle(fx, barY, h.px(10), p);
+            p.setColor(AMBER);
+            c.drawCircle(fx, barY, h.px(6), p);
+            t.setTypeface(regular);
+            t.setLetterSpacing(0);
+            t.setTextSize(Math.min(h.sp(11.5f), 12 * u * h.dp));
+            t.setColor(DIM);
+            t.setTextAlign(Paint.Align.LEFT);
+            float ly = barY + bh + h.px(6) + t.getTextSize();
+            c.drawText(title(Lang.prayers[prevIdx]) + " " + loc.prayText[prevIdx], 0, ly, t);
+            t.setTextAlign(Paint.Align.RIGHT);
+            c.drawText(title(Lang.prayers[shown]) + " " + time, w, ly, t);
             for (int i = 0; i < pray.length; i++) {
                 float x0 = i * col;
                 boolean on = i == shown;
@@ -1188,7 +1190,19 @@ final class HomeCards {
             box.set(pad, pad, pad + art, pad + art);
             Bitmap cover = md != null ? cover(md) : null;
             if (cover != null) {
-                c.drawBitmap(rounded(cover, Math.round(art)), box.left, box.top, null);
+                Bitmap r = rounded(cover, Math.round(art));
+                // Latar kartu diwarnai warna sampul (dihitung sekali per gambar), memudar ke kanan bawah.
+                if (tint == null || tintFor != coverTint || tintW != w || tintH != ht) {
+                    tintFor = coverTint;
+                    tintW = w;
+                    tintH = ht;
+                    tint = new LinearGradient(0, 0, w * .85f, ht, (coverTint & 0x00FFFFFF) | 0xA6000000,
+                            coverTint & 0x00FFFFFF, Shader.TileMode.CLAMP);
+                }
+                p.setShader(tint);
+                c.drawRoundRect(0, 0, w, ht, h.px(22), h.px(22), p);
+                p.setShader(null);
+                c.drawBitmap(r, box.left, box.top, null);
             } else {
                 if (placeholder == null || placeholderSize != Math.round(art)) {
                     placeholderSize = Math.round(art);
@@ -1379,6 +1393,9 @@ final class HomeCards {
         private Shader placeholder;
         private int placeholderSize;
         private Bitmap coverSrc, coverOut;
+        /** Warna yang mewakili sampul (lihat dominant), dan gradasi latar kartu darinya. */
+        private int coverTint, tintFor, tintW, tintH;
+        private Shader tint;
 
         /** Sampul seukuran kotak dengan sudut bulat; dibuat ulang hanya bila gambar atau ukurannya berganti. */
         Bitmap rounded(Bitmap src, int size) {
@@ -1397,7 +1414,33 @@ final class HomeCards {
             q.setShader(sh);
             new Canvas(out).drawRoundRect(0, 0, size, size, h.px(14), h.px(14), q);
             coverOut = out;
+            coverTint = dominant(src);
             return out;
+        }
+
+        /**
+         * Warna yang paling "hidup" di sampul (jenuh dan cukup terang) dari 8×8 piksel; digelapkan supaya teks putih di
+         * atasnya tetap terbaca. Sampul hitam-putih: abu-abu gelap.
+         */
+        int dominant(Bitmap src) {
+            Bitmap tiny = Bitmap.createScaledBitmap(src, 8, 8, true);
+            float[] hsv = new float[3], best = null;
+            float score = -1;
+            for (int y = 0; y < 8; y++) {
+                for (int x = 0; x < 8; x++) {
+                    android.graphics.Color.colorToHSV(tiny.getPixel(x, y), hsv);
+                    float sc = hsv[1] * (hsv[2] < .15f ? 0 : hsv[2]);
+                    if (sc > score) {
+                        score = sc;
+                        best = hsv.clone();
+                    }
+                }
+            }
+            if (tiny != src) tiny.recycle();
+            if (best == null || best[1] < .12f) return 0xFF2A2C30;
+            best[1] = Math.min(best[1], .75f);
+            best[2] = Math.min(Math.max(best[2], .35f), .55f);
+            return android.graphics.Color.HSVToColor(best);
         }
 
         Bitmap cover(MediaMetadata md) {
@@ -1584,7 +1627,6 @@ final class HomeCards {
         root.removeCallbacks(weatherTick);
         root.postDelayed(weatherTick, WEATHER_MS);
         if (drive != null) drive.invalidate();
-        sky.invalidate();
     }
 
     final Runnable weatherTick = new Runnable() {
@@ -1607,7 +1649,6 @@ final class HomeCards {
 
     /** Tiap menit (updateTime). */
     void minute() {
-        if (sky != null) sky.invalidate();
         if (weather != null) weather.invalidate();
         if (drive != null) drive.invalidate();
     }

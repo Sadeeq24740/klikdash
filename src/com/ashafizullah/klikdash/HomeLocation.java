@@ -218,7 +218,7 @@ final class HomeLocation {
             if (kmh < 3) kmh = 0; // diam: abaikan goyangan GPS
             lastKmh = kmh;
             lastKmhAt = speedAt;
-            show(h.speed, String.valueOf(kmh), kmh > 100 ? WARN : TEXT); // di atas batas tol
+            show(h.speed, String.valueOf(kmh), kmh > HomeCards.SPEED_HOT ? HomeActivity.HOT : kmh > 100 ? WARN : TEXT); // batas lebuh raya
             if (h.cards != null) h.cards.onFix(l, kmh);
         }
         @Override public void onStatusChanged(String p, int s, Bundle b) { }

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tetapan (tab Launcher & Jimat Kuasa), tema, dan kemas kini (Bahasa Melayu). -->
+<resources>
+    <string name="settings_title">TETAPAN</string>
+    <string name="settings_close">TUTUP  ✕</string>
+    <string-array name="settings_tab_names">
+        <item>LAUNCHER</item>
+        <item>JIMAT KUASA</item>
+        <item>PEMBANTU AI</item>
+        <item>KLIKBEAM</item>
+        <item>AKAUN</item>
+        <item>KEMAS KINI</item>
+    </string-array>
+    <string-array name="settings_tab_captions">
+        <item>PAPARAN &amp; PINTASAN</item>
+        <item>APLIKASI DI LATAR</item>
+        <item>PROFIL &amp; SUARA</item>
+        <item>MIRROR TELEFON · BETA</item>
+        <item>PARKIR &amp; PERJALANAN</item>
+        <item formatted="false">VERSI %1$s</item>
+    </string-array>
+
+    <string name="settings_group_look">PAPARAN</string>
+    <string name="settings_group_prayer">SOLAT</string>
+    <string name="settings_group_home">HOME</string>
+    <string name="settings_group_system">SISTEM</string>
+    <string name="settings_group_theme_auto">TEMA AUTOMATIK</string>
+    <string name="settings_group_tiles">%1$d PINTASAN</string>
+    <string name="settings_group_alert">PERINGATAN %1$s</string>
+    <string name="settings_group_saver">%1$s · %2$s</string>
+    <string name="settings_group_welcome">SAMBUTAN %1$s</string>
+    <string name="settings_group_start">BUKA %1$s</string>
+    <string name="settings_group_pin">PIN AKTIF</string>
+    <string name="settings_group_hidden">%1$d DISEMBUNYIKAN</string>
+
+    <string name="settings_on">HIDUP</string>
+    <string name="settings_off">MATI</string>
+
+    <string name="settings_home_title">PAPARAN UTAMA</string>
+    <string name="settings_home_on">KlikDash kini menjadi paparan utama headunit. Kembali ke launcher asal bila-bila masa; KlikDash tetap dipasang.</string>
+    <string name="settings_home_off">Launcher asal masih menjadi paparan utama. Jadikan KlikDash paparan utama supaya ia muncul setiap kali headunit dihidupkan.</string>
+    <string name="settings_home_restore">LAUNCHER ASAL</string>
+    <string name="settings_home_make">JADIKAN UTAMA</string>
+
+    <string name="settings_clock_title">FORMAT JAM</string>
+    <string name="settings_clock_desc">Jam di home, waktu solat, dan peringatan solat. Format 12 jam memaparkan AM/PM di sebelah jam.</string>
+    <string name="settings_clock_24">24 JAM</string>
+    <string name="settings_clock_12">12 JAM</string>
+    <string name="settings_orient_title">ORIENTASI SKRIN</string>
+    <string name="settings_orient_desc">Automatik mengikut putaran headunit. Pilih MELINTANG jika skrin menjadi menegak selepas KlikDash dijadikan paparan utama: panel headunit itu asalnya menegak dan launcher asalnya yang memaksa melintang. Terpakai untuk semua skrin KlikDash.</string>
+    <string name="settings_orient_auto">AUTOMATIK</string>
+    <string name="settings_orient_landscape">MELINTANG</string>
+    <string name="settings_orient_portrait">MENEGAK</string>
+    <string name="settings_method_title">WAKTU SOLAT</string>
+    <string name="settings_method_desc">Automatik: JAKIM jika zon waktu headunit ialah Malaysia, selain itu Kemenag RI. Kini dikira dengan %1$s.</string>
+    <string name="settings_method_auto">AUTOMATIK</string>
+    <string name="settings_method_kemenag">KEMENAG</string>
+    <string name="settings_method_jakim">JAKIM</string>
+    <string name="settings_method_kemenag_name">Kemenag RI (Subuh 20°, Isyak 18°)</string>
+    <string name="settings_method_jakim_name">JAKIM Malaysia (Subuh 18°, Isyak 18°)</string>
+    <string name="settings_hijri_title">TARIKH HIJRAH</string>
+    <string name="settings_hijri_desc">Hari ini %1$s. Dikira dengan kalendar Umm al-Qura, yang boleh berbeza sehari daripada takwim rasmi. Anjak sehari jika hasil rukyah berbeza.</string>
+
+    <string name="settings_lang_title">BAHASA</string>
+    <string name="settings_lang_desc">Bahasa paparan KlikDash. Pembantu AI mempunyai tetapan bahasanya sendiri di tab Pembantu AI.</string>
+
+    <string name="settings_theme_title">TEMA</string>
+    <string name="settings_theme_auto_title">TEMA AUTOMATIK</string>
+    <string name="settings_theme_auto_desc">Bertukar sendiri antara tema siang dan tema malam mengikut matahari di lokasi headunit. Hari ini siang dari %1$s hingga %2$s.</string>
+    <string name="settings_theme_day_title">TEMA SIANG</string>
+    <string name="settings_theme_day_desc">Digunakan dari matahari terbit (%1$s) hingga terbenam (%2$s).</string>
+    <string name="settings_theme_night_title">TEMA MALAM</string>
+    <string name="settings_theme_night_desc">Digunakan dari matahari terbenam (%1$s) hingga terbit semula (%2$s).</string>
+
+    <string name="settings_tiles_title">BILANGAN PINTASAN</string>
+    <string name="settings_tiles_desc">Bilangan maksimum pintasan aplikasi di bilah sisi home, termasuk SEMUA. Pintasan yang tidak dipaparkan tetap disimpan dan muncul semula jika bilangannya ditambah.</string>
+
+    <string name="settings_saver_title">SCREENSAVER</string>
+    <string name="settings_saver_desc">Jam dan tarikh, muncul jika home tidak disentuh selama 30 saat atau beberapa minit. Hanya di home: tidak menutup aplikasi lain seperti Maps atau CarPlay. Ketik skrin untuk kembali.</string>
+    <string name="settings_saver_sec">%1$d SAAT</string>
+    <string name="settings_saver_sec_long">%1$d SAAT</string>
+    <string name="settings_saver_min_long">%1$d MINIT</string>
+    <string name="settings_saver_bg_title">LATAR SCREENSAVER</string>
+    <string name="settings_saver_bg_black_desc">Hitam kosong, paling selesa pada waktu malam.</string>
+    <string name="settings_saver_bg_photo_desc">Foto pilihan sendiri, dimalapkan sedikit supaya jam tetap jelas.</string>
+    <string name="settings_saver_black">HITAM</string>
+    <string name="settings_saver_photo">FOTO</string>
+    <string name="settings_saver_change">TUKAR FOTO</string>
+    <string name="settings_saver_preview">CUBA</string>
+    <string name="settings_saver_no_picker">Headunit ini tiada aplikasi untuk memilih foto</string>
+    <string name="settings_saver_saved">Foto screensaver disimpan</string>
+    <string name="settings_saver_failed">Foto tidak dapat dibuka. Cuba foto lain.</string>
+
+    <string name="settings_welcome_title">SAMBUTAN</string>
+    <string name="settings_welcome_desc">Dipaparkan di home semasa headunit dihidupkan. %1$s</string>
+    <string name="settings_welcome_now_off">Kini dimatikan.</string>
+    <string name="settings_welcome_now_custom">Kini menggunakan teks anda sendiri.</string>
+    <string name="settings_welcome_now_default">Kini doa keluar rumah (asal).</string>
+    <string name="settings_welcome_default">ASAL</string>
+    <string name="settings_welcome_custom">SENDIRI</string>
+    <string name="settings_welcome_view">LIHAT</string>
+    <string name="settings_welcome_disabled">Sambutan sedang dimatikan</string>
+    <string name="settings_welcome_dialog">Sambutan sendiri</string>
+    <string name="settings_welcome_f_title">TAJUK</string>
+    <string name="settings_welcome_f_title_hint">cth. Doa menaiki kenderaan</string>
+    <string name="settings_welcome_f_arab">TEKS ARAB (PILIHAN)</string>
+    <string name="settings_welcome_f_latin">BACAAN RUMI (PILIHAN)</string>
+    <string name="settings_welcome_f_text">MAKSUD ATAU MESEJ</string>
+    <string name="settings_welcome_f_text_hint">cth. Berhati-hati di jalan, jaga jarak selamat.</string>
+    <string name="settings_welcome_need_text">Isi teks Arab atau mesej</string>
+
+    <string name="settings_start_title">BUKA SEMASA HIDUP</string>
+    <string name="settings_start_desc_none">Pilih satu aplikasi yang terus dibuka semasa headunit dihidupkan, cth. Maps atau pemain muzik. Kini tiada.</string>
+    <string name="settings_start_desc">%1$s dibuka sendiri semasa headunit dihidupkan. Jika sambutan dipaparkan, ia dibuka selepas sambutan ditutup. Tidak dibuka semasa kereta bergerak.</string>
+    <string name="settings_start_missing">Aplikasi yang dipilih sudah tiada di headunit. Pilih yang lain atau matikan.</string>
+    <string name="settings_start_pick">PILIH</string>
+    <string name="settings_start_change">TUKAR</string>
+    <string name="settings_start_dialog">Aplikasi yang dibuka semasa hidup</string>
+    <string name="settings_start_set">%1$s akan dibuka semasa headunit dihidupkan</string>
+
+    <string name="settings_prayer_title">PERINGATAN SOLAT</string>
+    <string name="settings_prayer_desc">Pemberitahuan apabila masuk waktu Subuh, Zohor, Asar, Maghrib, dan Isyak, tanpa azan. Muncul juga di atas aplikasi lain seperti Maps.</string>
+    <string name="settings_prayer_test">CUBA</string>
+
+    <string name="settings_tiles_reset_title">PINTASAN HOME</string>
+    <string name="settings_tiles_reset_desc">Tekan lama pintasan di home untuk menukar atau memindahkan aplikasinya. Set semula mengembalikan susunan asal KlikDash.</string>
+    <string name="settings_tiles_reset">SET SEMULA</string>
+    <string name="settings_tiles_reset_confirm">Kembalikan semua pintasan home kepada susunan asal?</string>
+    <string name="settings_tiles_reset_button">Set semula</string>
+    <string name="settings_tiles_reset_done">Pintasan dikembalikan kepada asal</string>
+
+    <string name="settings_hidden_title">APLIKASI TERSEMBUNYI</string>
+    <string name="settings_hidden_none">Belum ada. Tekan lama ikon di Semua Aplikasi untuk menyembunyikannya, cth. ikon yang muncul berganda.</string>
+    <plurals name="settings_hidden_desc">
+        <item quantity="other">%1$d aplikasi disembunyikan daripada Semua Aplikasi. Tekan lama ikon di Semua Aplikasi untuk menyembunyikan yang lain.</item>
+    </plurals>
+    <string name="settings_hidden_show">PAPARKAN</string>
+    <string name="settings_hidden_pick">Ketik aplikasi untuk memaparkannya semula</string>
+    <string name="settings_hidden_all">Paparkan semua</string>
+    <string name="settings_hidden_shown">%1$s dipaparkan semula di Semua Aplikasi</string>
+    <string name="settings_hidden_all_done">Semua aplikasi dipaparkan semula</string>
+
+    <string name="settings_system_title">TETAPAN SISTEM</string>
+    <string name="settings_system_desc">Wi-Fi, Bluetooth, bunyi, skrin, dan pilihan pembangun ada dalam tetapan Android headunit.</string>
+    <string name="settings_system_open">BUKA</string>
+
+    <string name="settings_about_title">TENTANG</string>
+    <string name="settings_about_desc">KlikDash %1$s — launcher ringan untuk headunit Android. Sumber terbuka (MIT) di github.com/ashafizullah/klikdash. Ayat Al-Quran dalam zikir: Tanzil (tanzil.net).</string>
+
+    <string-array name="theme_names">
+        <item>AMBER</item>
+        <item>ZAMRUD</item>
+        <item>SIANG</item>
+        <item>KILAT</item>
+    </string-array>
+    <string-array name="theme_desc">
+        <item>Hitam hangat dengan aksen amber, asal KlikDash.</item>
+        <item>Hitam kehijauan dengan aksen hijau zamrud.</item>
+        <item>Latar krim cerah dengan teks gelap, lebih jelas di bawah terik matahari.</item>
+        <item>Panel kaca jernih berkilat di atas latar hitam, aksen biru ais, dan ikon aplikasi berwarna asli.</item>
+    </string-array>
+
+    <string name="update_title_row">KEMAS KINI</string>
+    <string name="update_desc">Versi dipasang %1$s. %2$s Kemas kini diambil daripada keluaran rasmi di GitHub dan hanya dipasang jika tandatangannya sepadan.</string>
+    <string name="update_crash_title">LAPORAN RALAT</string>
+    <string name="update_crash_desc">Jika KlikDash tertutup kerana ralat, laporannya (mesej ralat, jejak kod, versi, model headunit) dihantar kepada pembangun semasa dalam talian seterusnya, supaya boleh dibaiki. Tanpa lokasi atau data peribadi; dikaitkan dengan akaun KlikBeam hanya jika headunit disambungkan. Laporan disimpan 30 hari.</string>
+    <string name="update_auto_title">SEMAK KEMAS KINI AUTOMATIK</string>
+    <string name="update_auto_desc">Sekali setiap kali headunit dihidupkan, selepas internet disambung (paling kerap 6 jam sekali). Jika ada versi baharu, tawarannya muncul semasa kereta berhenti; muat turun tetap menunggu ketikan anda. Pilih Nanti supaya versi itu tidak ditawarkan lagi.</string>
+    <string name="update_never_checked">Belum pernah disemak.</string>
+    <string name="update_last_checked">Kali terakhir disemak %1$s.</string>
+    <string name="update_just_now">sebentar tadi</string>
+    <plurals name="update_minutes_ago">
+        <item quantity="other">%d minit lalu</item>
+    </plurals>
+    <plurals name="update_hours_ago">
+        <item quantity="other">%d jam lalu</item>
+    </plurals>
+    <plurals name="update_days_ago">
+        <item quantity="other">%d hari lalu</item>
+    </plurals>
+    <string name="update_check">SEMAK KEMAS KINI</string>
+    <string name="update_checking">MENYEMAK…</string>
+    <string name="update_no_internet">Tiada sambungan internet</string>
+    <string name="update_check_title">Semak kemas kini</string>
+    <string name="update_latest">KlikDash %1$s sudah versi terkini</string>
+    <string name="update_available">KlikDash %1$s tersedia</string>
+    <string name="update_installed_size">Dipasang: %1$s · saiz %2$d KB</string>
+    <string name="update_later">Nanti</string>
+    <string name="update_download_install">Muat turun &amp; pasang</string>
+    <string name="update_downloading">Memuat turun KlikDash %1$s</string>
+    <string name="update_installing">Memasang… KlikDash akan tertutup sebentar kemudian dibuka semula.</string>
+    <string name="update_allow_install">Benarkan KlikDash memasang aplikasi, kemudian semak kemas kini sekali lagi</string>
+    <string name="update_title">Kemas kini</string>
+    <string name="update_try_later">Cuba lagi nanti</string>
+    <string name="update_err_storage">Storan tidak dapat ditulis</string>
+    <string name="update_err_http">Muat turun gagal (HTTP %1$d)</string>
+    <string name="update_err_corrupt">Fail APK rosak</string>
+    <string name="update_err_not_klikdash">APK bukan KlikDash</string>
+    <string name="update_err_version">Versi APK tidak sepadan dengan keluaran</string>
+    <string name="update_err_signature">Tandatangan APK tidak sepadan, kemas kini dibatalkan</string>
+
+    <string name="power_restore_all">PULIHKAN SEMUA</string>
+    <string name="power_restore">PULIHKAN</string>
+    <string name="power_desc">Halang aplikasi berjalan senyap-senyap di latar supaya headunit lebih ringan dan sejuk. Aplikasi tetap dipasang dan boleh dibuka seperti biasa. Aplikasi sistem, navigasi, dan Zlink tidak dipaparkan.</string>
+    <string name="power_checking">MEMERIKSA APLIKASI…</string>
+    <string name="power_need_adb_port_wifi">ADB BELUM DIBUKA\n\nUSB debugging sudah aktif, tetapi port ADB 5555 tertutup. Buka tanpa komputer melalui Wireless debugging.</string>
+    <string name="power_need_adb_port">ADB BELUM DIBUKA\n\nUSB debugging sudah aktif, tetapi port ADB 5555 tertutup. Buka sekali dari laptop Windows: muat turun klikapps.pages.dev/adb, kemudian klik dua kali failnya.</string>
+    <string name="power_open_adb">BUKA ADB</string>
+    <string name="power_need_adb">PERLU USB DEBUGGING\n\nHidupkan di Tetapan › Pilihan pembangun › USB debugging, kemudian buka tab Jimat Kuasa sekali lagi.</string>
+    <string name="power_no_apps">TIADA APLIKASI PIHAK KETIGA</string>
+    <plurals name="power_apps">
+        <item quantity="other">%d APLIKASI</item>
+    </plurals>
+    <string name="power_count">%1$s  ·  %2$d DIHADKAN</string>
+    <string name="power_restricted">DIHADKAN</string>
+    <string name="power_restrict">HADKAN</string>
+    <string name="power_st_restricted">TIDAK BOLEH BERJALAN DI LATAR</string>
+    <string name="power_st_running">SEDANG BERJALAN DI LATAR</string>
+    <string name="power_st_allowed">BOLEH BERJALAN DI LATAR</string>
+</resources>

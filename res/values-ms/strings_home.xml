@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home, laci aplikasi, sambutan, notis ringkas, peringatan solat (Bahasa Melayu). -->
+<resources>
+    <string name="home_tile_phone">TELEFON</string>
+    <string name="home_tile_dzikir">ZIKIR</string>
+    <string name="home_tile_quran">AL-QURAN</string>
+    <string name="home_tile_camera">KAMERA 360</string>
+    <string name="home_tile_system">SISTEM</string>
+    <string name="home_tile_ask">TANYA AI</string>
+
+    <string name="home_tile_all">SEMUA</string>
+    <string name="home_tile_apps">"APLIKASI  →"</string>
+    <string name="home_tile_morning">PAGI</string>
+    <string name="home_tile_evening">PETANG</string>
+    <string name="home_tile_assistant">PEMBANTU AI</string>
+    <string name="home_tile_empty">KOSONG</string>
+    <string name="home_tile_tap_to_fill">KETIK UNTUK ISI</string>
+
+    <string name="home_ram">RAM %1$d%%</string>
+    <string name="home_cpu">CPU %1$d°C</string>
+    <string name="home_cpu_hot">CPU %1$d°C · PANAS</string>
+    <string name="home_disk">STORAN</string>
+    <string name="home_disk_short">DISK</string>
+    <string name="home_date">%1$d %2$s %3$d</string>
+    <string name="home_speed_unit">KM/J</string>
+    <string name="home_make_default">JADIKAN PAPARAN UTAMA</string>
+    <string name="home_prayer_next_in">▸ %1$s DALAM %2$s</string>
+    <string name="home_location_approx">" · ANGGARAN"</string>
+    <string name="home_cannot_open">Tidak dapat membuka aplikasi</string>
+
+    <string name="home_all_apps">SEMUA APLIKASI</string>
+    <string name="home_pick_for_slot">PILIH UNTUK SLOT %1$02d</string>
+    <plurals name="home_app_count">
+        <item quantity="other">%1$d APLIKASI</item>
+    </plurals>
+    <string name="home_app_filtered">%1$d DARIPADA %2$d</string>
+    <string name="home_search">CARI APLIKASI</string>
+    <string name="home_search_short">CARI</string>
+    <string name="home_settings_button">"⚙  TETAPAN"</string>
+    <string name="home_close_button">"TUTUP  ✕"</string>
+    <string name="home_apps_loading">MEMUATKAN SENARAI APLIKASI…</string>
+    <string name="home_no_apps">TIADA APLIKASI</string>
+    <string name="home_no_apps_for">TIADA APLIKASI “%1$s”</string>
+    <string name="home_app_menu_tag">APLIKASI</string>
+    <string name="home_hide_desc">Sembunyikan daripada Semua Aplikasi? Sesuai untuk ikon yang muncul berganda. Aplikasi tidak dipadam, dan boleh dipaparkan semula di Tetapan → Aplikasi tersembunyi.</string>
+    <string name="home_hide">Sembunyikan</string>
+    <string name="home_app_info">Maklumat aplikasi</string>
+    <string name="home_hidden_done">%1$s disembunyikan</string>
+
+    <string name="home_default_ok">KlikDash kini paparan utama</string>
+    <string name="home_need_adb">Belum berjaya: ADB headunit tidak dapat dihubungi. Hidupkan USB debugging di Pilihan pembangun, kemudian cuba lagi.</string>
+    <string name="home_need_adb_port">Belum berjaya: USB debugging sudah aktif, tetapi headunit ini belum membuka ADB untuk aplikasi (port 5555, biasa pada Android 11 ke atas). Buka sekali dari komputer dengan adb tcpip 5555 (langkahnya ada dalam panduan pemasangan), kemudian cuba lagi.</string>
+    <string name="home_need_adb_port_laptop">Belum berjaya: USB debugging sudah aktif, tetapi port ADB 5555 tertutup. Pada Android 10 ke bawah, buka sekali dari laptop Windows: muat turun klikapps.pages.dev/adb, klik dua kali failnya, sambungkan kabel USB, kemudian benarkan di headunit.</string>
+    <string name="home_adb_allow">Muncul soalan \"Allow USB debugging?\": tandakan \"Always allow\", kemudian ketik OK.</string>
+    <string name="home_adb_denied">Belum dibenarkan. Ketik butang sekali lagi, tandakan \"Always allow\" pada soalan \"Allow USB debugging?\", kemudian ketik OK.</string>
+    <string name="home_setprop_failed">Belum berjaya: headunit ini menolak penukaran paparan utama melalui ADB.</string>
+    <string name="home_restore_message">Kembali ke launcher asal? KlikDash tetap dipasang dan boleh dijadikan paparan utama semula dari butang di home-nya.</string>
+    <string name="home_restore_confirm">Kembali</string>
+
+    <string name="guard_title">KlikDash berhenti beberapa kali semasa dibuka</string>
+    <string name="guard_message">Supaya headunit masih boleh digunakan, home dibuka dalam mod selamat. Ketik CUBA LAGI, atau kembali ke launcher asal. Jika terus berulang, hantar foto skrin ini kepada pembangun.</string>
+    <string name="guard_retry">CUBA LAGI</string>
+    <string name="guard_stock">LAUNCHER ASAL</string>
+
+    <string name="home_notch_surah">SURAH %1$d</string>
+    <string name="home_notch_dzikir">ZIKIR</string>
+    <string name="home_notch_paused">JEDA</string>
+    <string name="home_notch_playing">MURATTAL</string>
+    <string name="home_notch_basmalah">"%1$s  ·  BASMALAH"</string>
+
+    <string name="welcome_head">SELAMAT JALAN</string>
+    <string name="welcome_head_title">"%1$s  ·  %2$s"</string>
+    <plurals name="welcome_closing_in">
+        <item quantity="other">"DITUTUP DALAM %1$d SAAT  ·  KETIK UNTUK MENUTUP"</item>
+    </plurals>
+    <string name="welcome_default_title">Doa keluar rumah</string>
+    <string name="welcome_default_text">Dengan nama Allah, aku bertawakal kepada-Nya; tiada daya dan kekuatan melainkan dengan-Nya.</string>
+
+    <string name="notice_ok">BERJAYA</string>
+    <string name="notice_fail">GAGAL</string>
+    <string name="notice_remind">PERINGATAN</string>
+    <string name="notice_info">INFO</string>
+
+    <string name="prayer_alert_title">Waktu solat</string>
+    <string name="prayer_alert_message">Masuk waktu %1$s · %2$s</string>
+    <string name="prayer_alert_notification">Waktu %1$s</string>
+    <string name="quick_title">PANEL PANTAS</string>
+    <string name="quick_volume">VOLUM</string>
+    <string name="quick_mute">SENYAP</string>
+    <string name="quick_brightness">KECERAHAN</string>
+    <string name="quick_screen">SKRIN</string>
+    <string name="quick_saver">SCREENSAVER SEKARANG</string>
+    <string name="quick_brightness_allow">Benarkan KlikDash mengubah tetapan sistem, kemudian kembali untuk melaraskan kecerahan.</string>
+    <string name="quick_settings">TETAPAN</string>
+    <string name="quick_split">SKRIN BERPECAH</string>
+    <string name="quick_split_pick">PILIH 2 APLIKASI</string>
+    <string name="home_split_left">SKRIN BERPECAH · APLIKASI KIRI</string>
+    <string name="home_split_right">SKRIN BERPECAH · APLIKASI KANAN</string>
+    <string name="split_same">Pilih aplikasi lain untuk sebelah kanan.</string>
+    <string name="split_swap">⇄  TUKAR</string>
+    <string name="split_unsupported">Headunit ini tidak membenarkan dua aplikasi dalam satu skrin.</string>
+    <string name="split_need_reboot">Tetingkap bersebelahan hanya aktif selepas headunit dihidupkan semula. Hidupkan semula sekali, kemudian cuba lagi.</string>
+    <string name="split_hint">Ketik pemegang di tengah untuk menutup salah satu aplikasi atau menukar sisi. Seret untuk mengubah saiz, ke tepi untuk menutup.</string>
+    <string name="split_close_all">✕  TUTUP SEMUA</string>
+    <string name="split_warn_title">Dua aplikasi serentak boleh jadi perlahan</string>
+    <string name="split_warn_text">Menjalankan dua aplikasi serentak memerlukan lebih banyak RAM dan pemproses. Pada sesetengah headunit, terutamanya yang RAM-nya kecil, skrin boleh tersekat atau salah satu aplikasi tertutup sendiri. Hasilnya bergantung pada spesifikasi headunit masing-masing. Teruskan?</string>
+    <string name="split_warn_go">TERUSKAN</string>
+    <string name="split_warn_never">JANGAN INGATKAN LAGI</string>
+
+    <!-- Home kad (HomeCards) -->
+    <string name="home_side_home">HOME</string>
+    <string name="home_side_settings">TETAPAN</string>
+    <string name="home_side_apps">APLIKASI</string>
+    <string name="home_trip">TRIP</string>
+    <string name="home_next_prayer">SOLAT SETERUSNYA</string>
+    <string name="home_in_hm">dalam %1$d j %2$d min</string>
+    <string name="home_in_m">dalam %1$d min</string>
+    <string name="home_map">PETA</string>
+    <string name="home_place_home">Rumah</string>
+    <string name="home_place_work">Pejabat</string>
+    <string name="home_place_hint">Tekan lama %1$s untuk menyimpan lokasi semasa</string>
+    <string name="home_place_saved">Lokasi %1$s disimpan</string>
+    <string name="home_media_none_app">Muzik</string>
+    <string name="home_media_player">Pemain</string>
+    <string name="home_media_idle">Tiada lagu dimainkan</string>
+    <string name="home_media_idle_hint">Ketik ▶ untuk menyambung muzik</string>
+    <string name="home_media_allow">Benarkan akses pemberitahuan</string>
+    <string name="home_media_allow_hint">Ketik di sini untuk memaparkan muzik</string>
+    <string name="home_media_playing">Sedang dimainkan</string>
+    <string name="home_media_paused">Dijeda</string>
+    <string name="home_wallpaper_failed">Gambar tidak boleh digunakan</string>
+    <string name="home_wallpaper_no_picker">Tiada aplikasi galeri untuk memilih gambar</string>
+    <string name="quick_wallpaper">WALLPAPER</string>
+    <string name="quick_wallpaper_pick">PILIH GAMBAR</string>
+    <string name="quick_wallpaper_default">ASAL</string>
+    <string name="wx_clear">Cerah</string>
+    <string name="wx_partly">Sebahagian berawan</string>
+    <string name="wx_cloudy">Mendung</string>
+    <string name="wx_fog">Berkabus</string>
+    <string name="wx_drizzle">Hujan renyai</string>
+    <string name="wx_rain">Hujan</string>
+    <string name="wx_snow">Salji</string>
+    <string name="wx_storm">Ribut petir</string>
+</resources>

@@ -13,6 +13,9 @@ final class Hijri {
     private static String cache;
     private static long cacheKey = -1;
 
+    /** Bahasa berganti (Lang.set): nama bulan dan akhiran tahun ikut berganti. */
+    static void reset() { cacheKey = -1; }
+
     /** Untuk home yang memperbarui tanggal tiap menit: hasil disimpan selama tanggal dan koreksinya sama. */
     static String today(long now, int offsetDays) {
         Calendar c = Calendar.getInstance();

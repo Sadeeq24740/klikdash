@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="account_title">AKAUN KLIKBEAM</string>
+    <string name="account_desc">Sambungkan headunit ke akaun KlikBeam di telefon. Lokasi parkir terakhir dan sejarah perjalanan kereta ini boleh dilihat daripada aplikasi KlikBeam. Pilihan: semua ciri KlikDash tetap berfungsi tanpa akaun.</string>
+    <string name="account_link">SAMBUNGKAN</string>
+    <string name="account_privacy_title">DATA YANG DIHANTAR</string>
+    <string name="account_privacy_desc">Hanya semasa disambungkan: laluan, jarak, masa dan kelajuan perjalanan, serta lokasi parkir terakhir. Data dihantar semasa headunit dalam talian (contohnya melalui hotspot telefon) ke akaun KlikBeam anda (lihat dasar privasi). Akaun percuma menyimpan sejarah 7 hari.</string>
+
+    <string name="account_scan">IMBAS DARI\nKLIKBEAM DI TELEFON</string>
+    <string name="account_code_label">KOD</string>
+    <string name="account_pair_steps">Di telefon, buka KlikBeam › AKAUN › TAMBAH KERETA, kemudian imbas QR ini. Kod sah hingga %1$s.</string>
+    <string name="account_pair_wait">Membuat kod…</string>
+    <string name="account_pair_offline">Pelayan KlikBeam tidak dapat dicapai. Pastikan headunit disambungkan ke internet, contohnya melalui hotspot telefon, kemudian cuba lagi.</string>
+    <string name="account_expired">Kod sudah tamat tempoh. Buat kod baharu.</string>
+    <string name="account_retry">CUBA LAGI</string>
+
+    <string name="account_linked_title">DISAMBUNGKAN</string>
+    <string name="account_linked_desc">Kereta ini disimpan sebagai %1$s dalam akaun KlikBeam. Tukar nama atau padam kereta daripada aplikasi KlikBeam.</string>
+    <string name="account_unlink">PUTUSKAN</string>
+    <string name="account_unlink_title">Putuskan headunit daripada akaun?</string>
+    <string name="account_unlink_text">Kereta ini dipadam daripada akaun KlikBeam bersama sejarah perjalanannya, dan perjalanan yang belum dihantar turut dibuang. Sambungkan semula bila-bila masa dengan QR baharu.</string>
+
+    <string name="account_trips_title">SEJARAH PERJALANAN</string>
+    <string name="account_trips_desc">Merekod laluan, jarak dan kelajuan semasa kereta bergerak, kemudian menghantarnya semasa headunit dalam talian.</string>
+    <string name="account_trips_recording">Sedang merekod perjalanan.</string>
+    <plurals name="account_trips_pending">
+        <item quantity="other">%1$d perjalanan menunggu internet.</item>
+    </plurals>
+    <string name="account_trips_sent">Semua perjalanan sudah dihantar.</string>
+    <string name="account_trips_off">Mati: perjalanan tidak direkod dan lokasi parkir tidak dikemas kini.</string>
+
+    <string name="account_channel">Sejarah perjalanan</string>
+    <string name="account_notification_title">Merekod perjalanan</string>
+    <string name="account_notification_text">%1$s · disambungkan ke akaun KlikBeam</string>
+
+    <string name="account_confirm_title">LULUSKAN AKAUN INI?</string>
+    <string name="account_confirm_desc">Kod di skrin ini baru digunakan oleh akaun di atas. Luluskan hanya jika itu akaun anda: lokasi parkir dan sejarah perjalanan kereta ini akan kelihatan daripada akaun tersebut. Kereta disimpan sebagai %1$s.</string>
+    <string name="account_approve">LULUSKAN</string>
+    <string name="account_reject">TOLAK</string>
+    <string name="account_rejected">Ditolak. Kereta ini tidak disambungkan ke akaun itu. Buat kod baharu jika ingin menyambung ke akaun anda.</string>
+    <string name="account_linked_desc_account">Kereta ini disimpan sebagai %1$s dalam akaun KlikBeam %2$s. Tukar nama atau padam kereta daripada aplikasi KlikBeam.</string>
+</resources>

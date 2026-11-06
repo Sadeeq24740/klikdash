@@ -73,7 +73,7 @@
     <string name="settings_theme_night_desc">Used from sunset (%1$s) until sunrise (%2$s).</string>
 
     <string name="settings_tiles_title">NUMBER OF SHORTCUTS</string>
-    <string name="settings_tiles_desc">Shortcuts on the home screen, including ALL. Fewer shortcuts make the clock, prayer times, shortcuts, icons and labels bigger. Hidden shortcuts are kept and come back when you raise the number.</string>
+    <string name="settings_tiles_desc">Maximum number of app shortcuts in the home sidebar, including ALL. Hidden shortcuts are kept and come back when you raise the number.</string>
 
     <string name="settings_saver_title">SCREENSAVER</string>
     <string name="settings_saver_desc">The clock and date, shown when the home screen has not been touched for 30 seconds or the chosen minutes. Only on the home screen: it never covers other apps such as Maps or CarPlay. Tap the screen to go back.</string>

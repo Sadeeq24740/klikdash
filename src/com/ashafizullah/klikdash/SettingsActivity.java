@@ -231,7 +231,7 @@ public class SettingsActivity extends Activity {
         Key[] langs = new Key[Lang.CODES.length];
         for (int i = 0; i < langs.length; i++) {
             final String code = Lang.CODES[i];
-            langs[i] = key(getString(Lang.EN.equals(code) ? R.string.lang_en : R.string.lang_id), code.equals(Lang.code), () -> {
+            langs[i] = key(getString(Lang.nameRes(code)), code.equals(Lang.code), () -> {
                 if (code.equals(Lang.saved(this))) return;
                 Lang.save(this, code);
                 recreate(); // seperti tema: home dan layar lain menyusul saat tampil lagi (Theme.stale)
@@ -301,7 +301,7 @@ public class SettingsActivity extends Activity {
         list.addView(group(GROUP_LOOK, getString(R.string.settings_group_look), dots(
                 autoTheme ? getString(R.string.settings_group_theme_auto)
                         : getResources().getStringArray(R.array.theme_names)[Theme.chosen(this, "theme")],
-                getString(Lang.EN.equals(Lang.code) ? R.string.lang_en : R.string.lang_id),
+                getString(Lang.nameRes(Lang.code)),
                 getString(twelve ? R.string.settings_clock_12 : R.string.settings_clock_24),
                 om == Orientation.AUTO ? null : getString(omLabel[om]),
                 getString(R.string.settings_group_tiles, tc)), look));

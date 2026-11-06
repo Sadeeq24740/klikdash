@@ -663,21 +663,26 @@ final class HomeCards {
         speedCol.setGravity(Gravity.CENTER_HORIZONTAL);
         h.speed = h.text("--", light, 40, TEXT);
         h.speed.setGravity(Gravity.CENTER);
-        speedCol.addView(h.speed, new LinearLayout.LayoutParams(WRAP, WRAP));
+        // Lebar dan tinggi tetap: setText tiap detik (kecepatan) hanya menggambar ulang TextView ini, tanpa meminta
+        // tata letak ulang seluruh home (TextView WRAP_CONTENT selalu requestLayout, lihat HomeActivity.show).
+        speedCol.addView(h.speed, new LinearLayout.LayoutParams(MATCH, h.px(48)));
         TextView unit = label(h.getString(R.string.home_speed_unit), 10, DIM);
         LinearLayout.LayoutParams ul = new LinearLayout.LayoutParams(WRAP, WRAP);
         ul.topMargin = h.px(4);
         speedCol.addView(unit, ul);
-        FrameLayout.LayoutParams scl = new FrameLayout.LayoutParams(WRAP, WRAP, Gravity.CENTER);
+        FrameLayout.LayoutParams scl = new FrameLayout.LayoutParams(MATCH, WRAP, Gravity.CENTER);
         scl.bottomMargin = h.px(36);
         gauge.addView(speedCol, scl);
         LinearLayout tripCol = new LinearLayout(h);
         tripCol.setOrientation(LinearLayout.VERTICAL);
         tripCol.setGravity(Gravity.CENTER_HORIZONTAL);
-        tripCol.addView(label(h.getString(R.string.home_trip), 10, DIM));
+        TextView tripLabel = label(h.getString(R.string.home_trip), 10, DIM);
+        tripLabel.setGravity(Gravity.CENTER);
+        tripCol.addView(tripLabel, new LinearLayout.LayoutParams(MATCH, WRAP));
         trip = h.text("0.0 km", regular, 15, TEXT);
         trip.setLetterSpacing(0.08f);
-        LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(WRAP, WRAP);
+        trip.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(MATCH, h.px(20));
         tl.topMargin = h.px(4);
         tripCol.addView(trip, tl);
         tripCol.setOnLongClickListener(v -> {
@@ -686,7 +691,7 @@ final class HomeCards {
             showTrip();
             return true;
         });
-        gauge.addView(tripCol, new FrameLayout.LayoutParams(WRAP, WRAP, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+        gauge.addView(tripCol, new FrameLayout.LayoutParams(MATCH, WRAP, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
         card.addView(gauge, new LinearLayout.LayoutParams(h.px(150), MATCH));
         showTrip();
 
@@ -1004,12 +1009,11 @@ final class HomeCards {
         final Paint tile = new Paint(Paint.FILTER_BITMAP_FLAG);
         final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         final TextPaint t = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        final Path arrow = new Path(), round = new Path();
+        final Path arrow = new Path();
         final Rect dst = new Rect();
 
         MapView() {
             super(h);
-            if (!Theme.light()) tile.setColorFilter(darkMap());
             t.setTypeface(regular);
             t.setTextSize(h.sp(10));
             t.setTextAlign(Paint.Align.RIGHT);
@@ -1021,21 +1025,26 @@ final class HomeCards {
             });
         }
 
+        /** Posisi dan arah yang terakhir digambar: fix GPS tiap detik hanya menggambar ulang bila petanya bergeser. */
+        double drawnLat = Double.NaN, drawnLon;
+        float drawnBearing;
+
         void fix(Location l, int kmh) {
-            double la = l.getLatitude(), lo = l.getLongitude();
+            lat = l.getLatitude();
+            lon = l.getLongitude();
             if (kmh >= 5 && l.hasBearing()) bearing = l.getBearing();
-            boolean moved = Double.isNaN(lat) || Math.abs(la - lat) > 1e-5 || Math.abs(lo - lon) > 1e-5;
-            lat = la;
-            lon = lo;
-            if (moved || kmh >= 5) invalidate();
+            // ±2 piksel di zoom 16 ≈ 5 m; arah berubah ≥ 4°.
+            boolean moved = Double.isNaN(drawnLat) || Math.abs(lat - drawnLat) > 4e-5 || Math.abs(lon - drawnLon) > 4e-5;
+            float turn = Math.abs(((bearing - drawnBearing) % 360 + 540) % 360 - 180);
+            if (moved || turn >= 4) invalidate();
         }
 
         @Override protected void onDraw(Canvas c) {
             int w = getWidth(), ht = getHeight();
-            // Sudut bulat seperti kartu lain (clipToOutline tidak dihormati semua firmware).
-            round.rewind();
-            round.addRoundRect(0, 0, w, ht, h.px(22), h.px(22), Path.Direction.CW);
-            c.clipPath(round);
+            drawnLat = lat;
+            drawnLon = lon;
+            drawnBearing = bearing;
+            // Sudut bulat dari kartu (setClipToOutline): clipPath di sini mahal di GPU headunit.
             c.drawColor(Theme.light() ? 0xFFE8E6E1 : 0xFF161A20);
             double la = !Double.isNaN(lat) ? lat : h.loc.lat, lo = !Double.isNaN(lat) ? lon : h.loc.lon;
             if (la == 0 && lo == 0) return;
@@ -1084,9 +1093,11 @@ final class HomeCards {
 
         Bitmap tileFor(int x, int y) {
             String key = ZOOM + "/" + x + "/" + y;
-            Bitmap b = TILES.get(key);
-            if (b != null || loading.contains(key)) return b;
-            loading.add(key);
+            boolean dark = !Theme.light();
+            String mem = (dark ? "d" : "l") + key;
+            Bitmap b = TILES.get(mem);
+            if (b != null || loading.contains(mem)) return b;
+            loading.add(mem);
             File dir = new File(h.createDeviceProtectedStorageContext().getCacheDir(), "osm");
             TILE_NET.execute(() -> {
                 Bitmap got = null;
@@ -1116,11 +1127,13 @@ final class HomeCards {
                     }
                 } catch (Exception ignored) { // tanpa internet: kotak kosong, dicoba lagi saat digambar ulang
                 }
+                // Digelapkan sekali di sini, bukan dengan ColorFilter tiap kali peta digambar.
+                if (got != null && dark) got = darken(got);
                 Bitmap done = got;
                 h.runOnUiThread(() -> {
-                    loading.remove(key);
+                    loading.remove(mem);
                     if (done != null) {
-                        TILES.put(key, done);
+                        TILES.put(mem, done);
                         invalidate();
                     }
                 });
@@ -1150,6 +1163,15 @@ final class HomeCards {
         for (int i = 0; i < fs.length - 300; i++) fs[i].delete();
     }
 
+    static Bitmap darken(Bitmap src) {
+        Bitmap out = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.RGB_565);
+        Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
+        p.setColorFilter(darkMap());
+        new Canvas(out).drawBitmap(src, 0, 0, p);
+        src.recycle();
+        return out;
+    }
+
     /** Peta gelap: kecerahan dibalik (warna jalan tetap), lalu diredupkan sedikit. */
     static ColorMatrixColorFilter darkMap() {
         float r = .2126f, g = .7152f, b = .0722f, k = .82f;
@@ -1165,10 +1187,8 @@ final class HomeCards {
     final class MediaCard extends View {
         final TextPaint t = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Paint img = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);
         final RectF box = new RectF(), prev = new RectF(), play = new RectF(), next = new RectF();
-        final Path clip = new Path(), shape = new Path();
-        final Rect src = new Rect();
+        final Path shape = new Path();
         MediaNotch.Source src0;
         private String iconPkg;
         private Drawable appIcon;
@@ -1195,7 +1215,8 @@ final class HomeCards {
 
         void refresh() {
             src0 = MediaNotch.current();
-            boolean want = h.resumed && src0 == MediaListener.SOURCE && src0.playing();
+            MediaMetadata md = src0 == MediaListener.SOURCE && MediaListener.current != null ? MediaListener.current.getMetadata() : null;
+            boolean want = h.resumed && md != null && src0.playing() && md.getLong(MediaMetadata.METADATA_KEY_DURATION) > 0;
             if (want != ticking) {
                 ticking = want;
                 removeCallbacks(tick);
@@ -1279,21 +1300,22 @@ final class HomeCards {
             MediaController mc = s == MediaListener.SOURCE ? MediaListener.current : null;
             MediaMetadata md = mc != null ? mc.getMetadata() : null;
 
-            // Sampul.
+            // Sampul: dipotong bulat dan diperkecil sekali per gambar (lihat rounded), bukan clipPath tiap frame.
             box.set(pad, pad, pad + art, pad + art);
-            clip.rewind();
-            clip.addRoundRect(box, h.px(14), h.px(14), Path.Direction.CW);
             Bitmap cover = md != null ? cover(md) : null;
-            c.save();
-            c.clipPath(clip);
             if (cover != null) {
-                int bw = cover.getWidth(), bh = cover.getHeight(), side = Math.min(bw, bh);
-                src.set((bw - side) / 2, (bh - side) / 2, (bw + side) / 2, (bh + side) / 2);
-                c.drawBitmap(cover, src, box, img);
+                c.drawBitmap(rounded(cover, Math.round(art)), box.left, box.top, null);
             } else {
-                p.setShader(new LinearGradient(box.left, box.top, box.right, box.bottom,
-                        Theme.mix(AMBER, 0xFF3A3F8F, .75f), 0xFF1E2238, Shader.TileMode.CLAMP));
-                c.drawRect(box, p);
+                if (placeholder == null || placeholderSize != Math.round(art)) {
+                    placeholderSize = Math.round(art);
+                    placeholder = new LinearGradient(0, 0, art, art, Theme.mix(AMBER, 0xFF3A3F8F, .75f), 0xFF1E2238,
+                            Shader.TileMode.CLAMP);
+                }
+                p.setShader(placeholder);
+                c.save();
+                c.translate(box.left, box.top);
+                c.drawRoundRect(0, 0, art, art, h.px(14), h.px(14), p);
+                c.restore();
                 p.setShader(null);
                 Drawable own = s == MediaNotch.QURAN ? h.getDrawable(R.drawable.ic_quran)
                         : s == MediaNotch.DZIKIR ? h.getDrawable(R.drawable.ic_dzikir) : null;
@@ -1305,7 +1327,6 @@ final class HomeCards {
                     own.draw(c);
                 } else note(c, box.centerX(), box.centerY(), art * .2f);
             }
-            c.restore();
 
             float x = pad + art + h.px(22), right = w - pad, avail = right - x;
             if (avail < h.px(80)) return;
@@ -1471,6 +1492,30 @@ final class HomeCards {
             return appIcon;
         }
 
+        private Shader placeholder;
+        private int placeholderSize;
+        private Bitmap coverSrc, coverOut;
+
+        /** Sampul seukuran kotak dengan sudut bulat; dibuat ulang hanya bila gambar atau ukurannya berganti. */
+        Bitmap rounded(Bitmap src, int size) {
+            if (src == coverSrc && coverOut != null && coverOut.getWidth() == size) return coverOut;
+            coverSrc = src;
+            Bitmap out = Bitmap.createBitmap(Math.max(1, size), Math.max(1, size), Bitmap.Config.ARGB_8888);
+            int bw = src.getWidth(), bh = src.getHeight(), side = Math.min(bw, bh);
+            android.graphics.BitmapShader sh = new android.graphics.BitmapShader(src, Shader.TileMode.CLAMP,
+                    Shader.TileMode.CLAMP);
+            android.graphics.Matrix m = new android.graphics.Matrix();
+            float k = size / (float) side;
+            m.setScale(k, k);
+            m.postTranslate(-(bw - side) / 2f * k, -(bh - side) / 2f * k);
+            sh.setLocalMatrix(m);
+            Paint q = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+            q.setShader(sh);
+            new Canvas(out).drawRoundRect(0, 0, size, size, h.px(14), h.px(14), q);
+            coverOut = out;
+            return out;
+        }
+
         Bitmap cover(MediaMetadata md) {
             Bitmap b = md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
             if (b == null) b = md.getBitmap(MediaMetadata.METADATA_KEY_ART);
@@ -1497,7 +1542,7 @@ final class HomeCards {
         final TextPaint t = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         final Path path = new Path();
-        final RectF track = new RectF();
+        final RectF track = new RectF(), arcBox = new RectF();
         boolean dragging;
         float downX;
 
@@ -1568,7 +1613,8 @@ final class HomeCards {
                     c.drawLine(cx + s * .7f, cy - s * .4f, cx + s * 1.4f, cy + s * .4f, p);
                     c.drawLine(cx + s * .7f, cy + s * .4f, cx + s * 1.4f, cy - s * .4f, p);
                 } else {
-                    RectF a = new RectF(cx - s * .3f, cy - s * .7f, cx + s * 1.1f, cy + s * .7f);
+                    RectF a = arcBox;
+                    a.set(cx - s * .3f, cy - s * .7f, cx + s * 1.1f, cy + s * .7f);
                     c.drawArc(a, -45, 90, false, p);
                     a.set(cx - s * .5f, cy - s * 1.2f, cx + s * 1.5f, cy + s * 1.2f);
                     c.drawArc(a, -45, 90, false, p);
@@ -1612,7 +1658,8 @@ final class HomeCards {
             c.drawRoundRect(track, h.px(2), h.px(2), p);
             float fx = x0 + (x1 - x0) * pct / 100f;
             p.setColor(AMBER);
-            c.drawRoundRect(new RectF(x0, ty - h.px(2), fx, ty + h.px(2)), h.px(2), h.px(2), p);
+            arcBox.set(x0, ty - h.px(2), fx, ty + h.px(2));
+            c.drawRoundRect(arcBox, h.px(2), h.px(2), p);
             p.setColor(0xFFFFFFFF);
             c.drawCircle(fx, ty, r, p);
         }
@@ -1707,12 +1754,28 @@ final class HomeCards {
             while (o.outWidth / (s * 2) >= sw && o.outHeight / (s * 2) >= sh) s *= 2;
             o = new BitmapFactory.Options();
             o.inSampleSize = s;
-            Bitmap b = BitmapFactory.decodeFile(f.getPath(), o);
+            Bitmap b = fitScreen(BitmapFactory.decodeFile(f.getPath(), o), sw, sh);
             h.runOnUiThread(() -> {
                 wall = b;
                 root.getBackground().invalidateSelf();
             });
         }, "wallpaper").start();
+    }
+
+    /**
+     * Dipotong dan diperkecil tepat seukuran layar, sudah digelapkan (RGB_565: separuh memori). Digambar 1:1 tanpa
+     * penskalaan setiap kali latar home digambar ulang.
+     */
+    static Bitmap fitScreen(Bitmap b, int sw, int sh) {
+        if (b == null || sw <= 0 || sh <= 0) return b;
+        Bitmap out = Bitmap.createBitmap(sw, sh, Bitmap.Config.RGB_565);
+        Canvas c = new Canvas(out);
+        float scale = Math.max(sw / (float) b.getWidth(), sh / (float) b.getHeight());
+        int w = Math.round(sw / scale), hgt = Math.round(sh / scale);
+        Rect src = new Rect((b.getWidth() - w) / 2, (b.getHeight() - hgt) / 2, (b.getWidth() + w) / 2, (b.getHeight() + hgt) / 2);
+        c.drawBitmap(b, src, new Rect(0, 0, sw, sh), new Paint(Paint.FILTER_BITMAP_FLAG));
+        b.recycle();
+        return out;
     }
 
     /** Gambar dari galeri: disalin ke penyimpanan DE (home bisa tampil sebelum headunit dibuka kuncinya). */
@@ -1746,7 +1809,8 @@ final class HomeCards {
     /** Latar home: wallpaper (dipotong memenuhi layar, digelapkan sedikit) atau gradasi gelap bawaan. */
     final class Wallpaper extends Drawable {
         final Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
-        final Rect src = new Rect();
+        final Rect src = new Rect(), gradFor = new Rect();
+        Shader grad;
 
         Wallpaper(HomeActivity a) { }
 
@@ -1754,17 +1818,23 @@ final class HomeCards {
             Rect b = getBounds();
             Bitmap w = wall;
             if (w == null) {
-                p.setShader(new LinearGradient(b.left, b.top, b.right, b.bottom,
-                        Theme.light() ? new int[]{0xFFEDE7DA, 0xFFD9D2C3} : new int[]{0xFF141A26, 0xFF0B0E15, 0xFF120E0A},
-                        null, Shader.TileMode.CLAMP));
+                if (grad == null || !b.equals(gradFor)) {
+                    gradFor.set(b);
+                    grad = new LinearGradient(b.left, b.top, b.right, b.bottom,
+                            Theme.light() ? new int[]{0xFFEDE7DA, 0xFFD9D2C3} : new int[]{0xFF141A26, 0xFF0B0E15, 0xFF120E0A},
+                            null, Shader.TileMode.CLAMP);
+                }
+                p.setShader(grad);
                 c.drawRect(b, p);
                 p.setShader(null);
                 return;
             }
-            float scale = Math.max(b.width() / (float) w.getWidth(), b.height() / (float) w.getHeight());
-            int sw = Math.round(b.width() / scale), sh = Math.round(b.height() / scale);
-            src.set((w.getWidth() - sw) / 2, (w.getHeight() - sh) / 2, (w.getWidth() + sw) / 2, (w.getHeight() + sh) / 2);
-            c.drawBitmap(w, src, b, p);
+            if (w.getWidth() == b.width() && w.getHeight() == b.height()) {
+                c.drawBitmap(w, b.left, b.top, null);
+            } else { // layar berubah ukuran sebelum home dibangun ulang
+                src.set(0, 0, w.getWidth(), w.getHeight());
+                c.drawBitmap(w, src, b, p);
+            }
             c.drawColor(Theme.light() ? 0x33FFFFFF : 0x4D000000);
         }
 

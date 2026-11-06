@@ -113,15 +113,9 @@
     <string name="home_side_home">HOME</string>
     <string name="home_side_settings">SETTINGS</string>
     <string name="home_side_apps">APPS</string>
-    <string name="home_trip">TRIP</string>
     <string name="home_next_prayer">NEXT PRAYER</string>
     <string name="home_in_hm">in %1$d hr %2$d min</string>
     <string name="home_in_m">in %1$d min</string>
-    <string name="home_map">MAP</string>
-    <string name="home_place_home">Home</string>
-    <string name="home_place_work">Work</string>
-    <string name="home_place_hint">Long-press %1$s to save your current location</string>
-    <string name="home_place_saved">%1$s location saved</string>
     <string name="home_media_none_app">Music</string>
     <string name="home_media_player">Player</string>
     <string name="home_media_idle">Nothing playing</string>
@@ -143,6 +137,19 @@
     <string name="wx_rain">Rain</string>
     <string name="wx_snow">Snow</string>
     <string name="wx_storm">Thunderstorm</string>
-    <string name="quick_minimap">MINI MAP</string>
-    <string name="home_map_off">Mini map off · tap to open maps</string>
+    <string name="home_zlink">Zlink</string>
+    <string name="home_zlink_sub">CarPlay · Android Auto</string>
+    <string name="home_zlink_missing">Zlink isn\'t installed on this headunit</string>
+    <string name="home_drive">TRIP</string>
+    <string name="home_drive_dist">DISTANCE</string>
+    <string name="home_drive_time">TIME</string>
+    <string name="home_drive_avg">AVERAGE</string>
+    <string name="home_drive_max">MAX</string>
+    <string name="home_drive_reset">Trip reset</string>
+    <string name="home_drive_reset_hint">Long-press to reset the trip</string>
+    <string name="home_quick_dzikir_pagi">Morning Dhikr</string>
+    <string name="home_quick_dzikir_petang">Evening Dhikr</string>
+    <string name="home_quick_dzikir_sub">Tap to start</string>
+    <string name="home_quick_quran">Qur\'an</string>
+    <string name="home_quick_quran_sub">Continue reading</string>
 </resources>

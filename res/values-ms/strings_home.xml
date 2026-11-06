@@ -111,15 +111,9 @@
     <string name="home_side_home">HOME</string>
     <string name="home_side_settings">TETAPAN</string>
     <string name="home_side_apps">APLIKASI</string>
-    <string name="home_trip">TRIP</string>
     <string name="home_next_prayer">SOLAT SETERUSNYA</string>
     <string name="home_in_hm">dalam %1$d j %2$d min</string>
     <string name="home_in_m">dalam %1$d min</string>
-    <string name="home_map">PETA</string>
-    <string name="home_place_home">Rumah</string>
-    <string name="home_place_work">Pejabat</string>
-    <string name="home_place_hint">Tekan lama %1$s untuk menyimpan lokasi semasa</string>
-    <string name="home_place_saved">Lokasi %1$s disimpan</string>
     <string name="home_media_none_app">Muzik</string>
     <string name="home_media_player">Pemain</string>
     <string name="home_media_idle">Tiada lagu dimainkan</string>
@@ -141,6 +135,19 @@
     <string name="wx_rain">Hujan</string>
     <string name="wx_snow">Salji</string>
     <string name="wx_storm">Ribut petir</string>
-    <string name="quick_minimap">PETA MINI</string>
-    <string name="home_map_off">Peta mini dimatikan · ketik untuk membuka peta</string>
+    <string name="home_zlink">Zlink</string>
+    <string name="home_zlink_sub">CarPlay · Android Auto</string>
+    <string name="home_zlink_missing">Zlink tidak dipasang di headunit ini</string>
+    <string name="home_drive">PERJALANAN</string>
+    <string name="home_drive_dist">JARAK</string>
+    <string name="home_drive_time">MASA</string>
+    <string name="home_drive_avg">PURATA</string>
+    <string name="home_drive_max">MAKS</string>
+    <string name="home_drive_reset">Perjalanan diset semula</string>
+    <string name="home_drive_reset_hint">Tekan lama untuk set semula perjalanan</string>
+    <string name="home_quick_dzikir_pagi">Zikir Pagi</string>
+    <string name="home_quick_dzikir_petang">Zikir Petang</string>
+    <string name="home_quick_dzikir_sub">Ketik untuk mula</string>
+    <string name="home_quick_quran">Al-Quran</string>
+    <string name="home_quick_quran_sub">Sambung bacaan</string>
 </resources>

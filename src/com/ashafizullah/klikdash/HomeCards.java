@@ -26,7 +26,6 @@ import android.media.session.PlaybackState;
 import android.os.SystemClock;
 import android.text.TextPaint;
 import android.text.TextUtils;
-import android.util.LruCache;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
@@ -43,9 +42,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -79,12 +76,11 @@ final class HomeCards {
     }
 
     FrameLayout root;
-    MapView map;
+    DriveCard drive;
     MediaCard media;
     Slider volume, brightness;
     Weather weather;
     Arc arc;
-    TextView trip;
     Sky sky;
 
     /** Jarak trip sejak headunit menyala/bangun (meter); statis: tetap saat home dibangun ulang. */
@@ -92,8 +88,14 @@ final class HomeCards {
     private static double lastLat = Double.NaN, lastLon;
     private static long lastFixAt;
 
+    /** Lama mobil bergerak (ms) dan kecepatan tertinggi trip ini. */
+    static long tripMovingMs;
+    static int tripMaxKmh;
+
     static void resetTrip() {
         tripM = 0;
+        tripMovingMs = 0;
+        tripMaxKmh = 0;
         lastLat = Double.NaN;
     }
 
@@ -118,7 +120,9 @@ final class HomeCards {
 
         View clock = clockCard(portrait ? wDp - 28 : (wDp - 96 - 14 - 14) * .42f, portrait ? hDp * .2f : (hDp - 28 - 14) * .4f);
         View prayer = prayerCard();
-        View mapCard = mapCard();
+        drive = new DriveCard();
+        drive.setBackground(card());
+        View mapCard = drive;
         media = new MediaCard();
         media.setBackground(card());
         volume = new Slider(true);
@@ -669,29 +673,9 @@ final class HomeCards {
         ul.topMargin = h.px(4);
         speedCol.addView(unit, ul);
         FrameLayout.LayoutParams scl = new FrameLayout.LayoutParams(MATCH, WRAP, Gravity.CENTER);
-        scl.bottomMargin = h.px(36);
+        scl.bottomMargin = h.px(10);
         gauge.addView(speedCol, scl);
-        LinearLayout tripCol = new LinearLayout(h);
-        tripCol.setOrientation(LinearLayout.VERTICAL);
-        tripCol.setGravity(Gravity.CENTER_HORIZONTAL);
-        TextView tripLabel = label(h.getString(R.string.home_trip), 10, DIM);
-        tripLabel.setGravity(Gravity.CENTER);
-        tripCol.addView(tripLabel, new LinearLayout.LayoutParams(MATCH, WRAP));
-        trip = h.text("0.0 km", regular, 15, TEXT);
-        trip.setLetterSpacing(0.08f);
-        trip.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(MATCH, h.px(20));
-        tl.topMargin = h.px(4);
-        tripCol.addView(trip, tl);
-        tripCol.setOnLongClickListener(v -> {
-            v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-            resetTrip();
-            showTrip();
-            return true;
-        });
-        gauge.addView(tripCol, new FrameLayout.LayoutParams(MATCH, WRAP, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
         card.addView(gauge, new LinearLayout.LayoutParams(h.px(150), MATCH));
-        showTrip();
 
         View rule = new View(h);
         rule.setBackgroundColor(Theme.light() ? 0x1F000000 : 0x1FFFFFFF);
@@ -706,15 +690,13 @@ final class HomeCards {
         return card;
     }
 
-    void showTrip() {
-        if (trip != null) HomeActivity.show(trip, String.format(Locale.US, "%.1f km", tripM / 1000));
-    }
 
     /** Fix GPS (tiap detik selama home tampil, dari HomeLocation): jarak trip, busur kecepatan, dan peta. */
     void onFix(Location l, int kmh) {
         long now = SystemClock.elapsedRealtime();
         if (l.hasAccuracy() && l.getAccuracy() <= 50) {
             if (!Double.isNaN(lastLat) && kmh >= 3 && now - lastFixAt < 10_000) {
+                tripMovingMs += now - lastFixAt;
                 float[] d = new float[1];
                 Location.distanceBetween(lastLat, lastLon, l.getLatitude(), l.getLongitude(), d);
                 if (d[0] < 120) tripM += d[0]; // loncatan GPS dibuang
@@ -723,10 +705,17 @@ final class HomeCards {
             lastLon = l.getLongitude();
             lastFixAt = now;
         }
-        showTrip();
+        if (kmh > tripMaxKmh && kmh < 250) tripMaxKmh = kmh;
         arc.invalidate();
-        if (map != null) map.fix(l, kmh);
+        // Kartu perjalanan: hanya bila angka yang tampil berubah (jarak per 100 m, masa per menit, maks).
+        String shown = (Math.round(tripM / 100)) + "/" + tripMovingMs / 60_000 + "/" + tripMaxKmh;
+        if (!shown.equals(driveShown)) {
+            driveShown = shown;
+            if (drive != null) drive.invalidate();
+        }
     }
+
+    private String driveShown = "";
 
     /** Busur kecepatan 0–160 km/j, terisi warna aksen. */
     final class Arc extends View {
@@ -740,8 +729,8 @@ final class HomeCards {
         }
 
         @Override protected void onDraw(Canvas c) {
-            float stroke = h.px(5), size = Math.min(getWidth(), getHeight() - h.px(44)) - stroke * 2;
-            float cx = getWidth() / 2f, cy = stroke + size / 2f + h.px(2);
+            float stroke = h.px(5), size = Math.min(getWidth(), getHeight()) - stroke * 2;
+            float cx = getWidth() / 2f, cy = getHeight() / 2f;
             box.set(cx - size / 2f, cy - size / 2f, cx + size / 2f, cy + size / 2f);
             p.setStrokeWidth(stroke);
             p.setColor(Theme.light() ? 0x26000000 : 0x2EFFFFFF);
@@ -847,143 +836,7 @@ final class HomeCards {
         }
     }
 
-    // ---------------------------------------------------------------- peta mini (OpenStreetMap)
-
-    View mapCard() {
-        FrameLayout card = new FrameLayout(h);
-        card.setBackground(card());
-        card.setClipToOutline(true);
-        map = new MapView();
-        card.addView(map, MATCH, MATCH);
-
-        LinearLayout pill = new LinearLayout(h);
-        pill.setOrientation(LinearLayout.VERTICAL);
-        pill.setBackground(pill());
-        pill.setPadding(h.px(14), h.px(8), h.px(18), h.px(8));
-        pill.addView(label(h.getString(R.string.home_map), 10, DIM));
-        mapPlace = h.text("", medium, 15, TEXT);
-        mapPlace.setEllipsize(TextUtils.TruncateAt.END);
-        mapPlace.setMaxWidth(h.px(220));
-        pill.addView(mapPlace);
-        FrameLayout.LayoutParams pl = new FrameLayout.LayoutParams(WRAP, WRAP, Gravity.TOP | Gravity.START);
-        pl.leftMargin = pl.topMargin = h.px(12);
-        card.addView(pill, pl);
-
-        LinearLayout buttons = new LinearLayout(h);
-        buttons.addView(new Place("home", R.string.home_place_home), new LinearLayout.LayoutParams(0, MATCH, 1f));
-        LinearLayout.LayoutParams wl = new LinearLayout.LayoutParams(0, MATCH, 1f);
-        wl.leftMargin = h.px(10);
-        buttons.addView(new Place("work", R.string.home_place_work), wl);
-        FrameLayout.LayoutParams bl = new FrameLayout.LayoutParams(MATCH, h.px(48), Gravity.BOTTOM);
-        bl.leftMargin = bl.rightMargin = bl.bottomMargin = h.px(12);
-        card.addView(buttons, bl);
-        showPlace();
-        return card;
-    }
-
-    TextView mapPlace;
-
-    void showPlace() {
-        if (mapPlace != null) HomeActivity.show(mapPlace, h.loc.city != null ? title(h.loc.city) : "—");
-    }
-
-    Drawable pill() {
-        GradientDrawable g = new GradientDrawable();
-        g.setCornerRadius(h.px(16));
-        g.setColor(Theme.light() ? 0xE6FFFFFF : 0xD9101216);
-        g.setStroke(Math.max(1, h.px(1)), Theme.light() ? 0x1F000000 : 0x1FFFFFFF);
-        return g;
-    }
-
-    /** Tujuan tersimpan: ketuk = navigasi ke sana, tekan lama = simpan lokasi sekarang. */
-    final class Place extends View {
-        final String key;
-        final String name;
-        final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final TextPaint t = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        final Path icon = new Path();
-        final RectF box = new RectF();
-
-        Place(String key, int name) {
-            super(h);
-            this.key = key;
-            this.name = h.getString(name);
-            setContentDescription(this.name);
-            t.setTypeface(medium);
-            t.setTextSize(h.sp(15));
-            setClickable(true);
-            setOnClickListener(v -> go());
-            setOnLongClickListener(v -> {
-                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                save();
-                return true;
-            });
-        }
-
-        @Override protected void drawableStateChanged() {
-            super.drawableStateChanged();
-            invalidate();
-        }
-
-        void go() {
-            SharedPreferences pr = h.prefs;
-            if (!pr.contains(key + "Lat")) {
-                Notice.info(h, h.getString(R.string.home_place_hint, name));
-                return;
-            }
-            double lat = pr.getFloat(key + "Lat", 0), lon = pr.getFloat(key + "Lon", 0);
-            String q = String.format(Locale.US, "%.6f,%.6f", lat, lon);
-            Intent i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("google.navigation:q=" + q));
-            if (i.resolveActivity(h.getPackageManager()) == null) {
-                i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:" + q + "?q=" + q + "(" + android.net.Uri.encode(name) + ")"));
-            }
-            openIntent(i);
-        }
-
-        void save() {
-            double lat = !Double.isNaN(map.lat) ? map.lat : h.loc.lat, lon = !Double.isNaN(map.lat) ? map.lon : h.loc.lon;
-            h.prefs.edit().putFloat(key + "Lat", (float) lat).putFloat(key + "Lon", (float) lon).apply();
-            Notice.ok(h, h.getString(R.string.home_place_saved, name));
-        }
-
-        @Override protected void onDraw(Canvas c) {
-            int w = getWidth(), ht = getHeight();
-            box.set(0, 0, w, ht);
-            p.setStyle(Paint.Style.FILL);
-            p.setColor(isPressed() ? (AMBER & 0x00FFFFFF) | 0x66000000 : Theme.light() ? 0xE6FFFFFF : 0xE6101216);
-            c.drawRoundRect(box, ht / 2f, ht / 2f, p);
-            p.setStyle(Paint.Style.STROKE);
-            p.setStrokeWidth(h.px(1));
-            p.setColor(Theme.light() ? 0x1F000000 : 0x26FFFFFF);
-            c.drawRoundRect(box, ht / 2f, ht / 2f, p);
-            p.setStyle(Paint.Style.FILL);
-            float tw = t.measureText(name), s = h.px(8), gap = h.px(10), x = (w - (s * 2 + gap + tw)) / 2f, cy = ht / 2f;
-            p.setColor(TEXT);
-            icon.rewind();
-            if ("home".equals(key)) {
-                icon.moveTo(x + s, cy - s);
-                icon.lineTo(x + s * 2, cy);
-                icon.lineTo(x + s * 1.7f, cy);
-                icon.lineTo(x + s * 1.7f, cy + s * .9f);
-                icon.lineTo(x + s * .3f, cy + s * .9f);
-                icon.lineTo(x + s * .3f, cy);
-                icon.lineTo(x, cy);
-                icon.close();
-                c.drawPath(icon, p);
-            } else {
-                box.set(x, cy - s * .55f, x + s * 2, cy + s * .9f);
-                c.drawRoundRect(box, h.px(2), h.px(2), p);
-                p.setStyle(Paint.Style.STROKE);
-                p.setStrokeWidth(h.px(1.8f));
-                box.set(x + s * .6f, cy - s * .95f, x + s * 1.4f, cy - s * .4f);
-                c.drawRoundRect(box, h.px(1.5f), h.px(1.5f), p);
-                p.setStyle(Paint.Style.FILL);
-            }
-            t.setColor(TEXT);
-            Paint.FontMetrics fm = t.getFontMetrics();
-            c.drawText(name, x + s * 2 + gap, cy - (fm.ascent + fm.descent) / 2f, t);
-        }
-    }
+    // ---------------------------------------------------------------- kartu Zlink & perjalanan
 
     void openIntent(Intent i) {
         try {
@@ -995,231 +848,222 @@ final class HomeCards {
         }
     }
 
-    static final int ZOOM = 16;
-    private static final LruCache<String, Bitmap> TILES = new LruCache<>(30);
-    private static final Set<String> loading = new HashSet<>();
-    private static final ExecutorService TILE_NET = Executors.newFixedThreadPool(2);
+    static final String ZLINK = "com.zjinnova.zlink";
 
-    /** Peta (CARTO dark/light, data OpenStreetMap) di sekitar posisi sekarang dengan panah arah; ketuk untuk membuka aplikasi peta. */
-    final class MapView extends View {
-        double lat = Double.NaN, lon;
-        float bearing;
-        final Paint tile = new Paint(Paint.FILTER_BITMAP_FLAG);
-        final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /**
+     * Pengganti peta mini (headunit tidak kuat menjalankan Waze/Maps; navigasi lewat Zlink di HP): tombol besar Zlink
+     * (CarPlay/Android Auto), ringkasan perjalanan dari GPS, dan dua tombol cepat Zikir dan Al-Quran. Satu View yang
+     * digambar sendiri; digambar ulang hanya saat angka perjalanan berubah.
+     */
+    final class DriveCard extends View {
         final TextPaint t = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        final Path arrow = new Path();
-        final Rect dst = new Rect();
+        final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final RectF zlink = new RectF(), stats = new RectF(), dzikir = new RectF(), quran = new RectF(), box = new RectF();
+        final Path phone = new Path();
+        RectF pressed;
+        private float downX, downY;
+        private boolean longDone;
+        private final Runnable longPress = () -> {
+            if (pressed != stats) return;
+            longDone = true;
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            resetTrip();
+            invalidate();
+            Notice.ok(h, h.getString(R.string.home_drive_reset));
+        };
+        private Drawable icQuran, icDzikir;
 
-        MapView() {
+        DriveCard() {
             super(h);
-            t.setTypeface(regular);
-            t.setTextSize(h.sp(10));
-            t.setTextAlign(Paint.Align.RIGHT);
             setClickable(true);
-            setOnClickListener(v -> {
-                double la = !Double.isNaN(lat) ? lat : h.loc.lat, lo = !Double.isNaN(lat) ? lon : h.loc.lon;
-                openIntent(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(
-                        String.format(Locale.US, "geo:%.6f,%.6f?z=%d", la, lo, ZOOM))));
-            });
         }
 
-        /** Peta mini bisa dimatikan (panel cepat): kartu tetap ada dengan tombol Rumah/Pejabat, tanpa unduhan ubin. */
-        final boolean on = h.prefs.getBoolean("miniMap", true);
-        /** Posisi panah dan arah yang terakhir digambar: fix GPS tiap detik hanya menggambar ulang bila panahnya bergeser. */
-        float drawnX = Float.NaN, drawnY, drawnBearing;
-        /**
-         * Peta digambar sekali ke satu bitmap seukuran kartu; tiap frame hanya bitmap itu + panah. Digambar ulang hanya
-         * bila panah sudah jauh dari tengah (±25% kartu, ±300 m di zoom 16), ubin baru tiba, atau ukurannya berubah.
-         */
-        Bitmap snap;
-        double snapFx, snapFy;
-        boolean dirty = true;
-        final Runnable tilesArrived = this::invalidate;
-
-        void tilesChanged() {
-            dirty = true;
-            removeCallbacks(tilesArrived);
-            postDelayed(tilesArrived, 600); // ubin datang beruntun: digabung jadi sekali gambar ulang
+        @Override public boolean onTouchEvent(MotionEvent e) {
+            switch (e.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    downX = e.getX();
+                    downY = e.getY();
+                    longDone = false;
+                    pressed = zlink.contains(downX, downY) ? zlink : dzikir.contains(downX, downY) ? dzikir
+                            : quran.contains(downX, downY) ? quran : stats.contains(downX, downY) ? stats : null;
+                    if (pressed == stats) postDelayed(longPress, 700);
+                    invalidate();
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    if (pressed != null && Math.hypot(e.getX() - downX, e.getY() - downY) > h.px(14)) {
+                        removeCallbacks(longPress);
+                        pressed = null;
+                        invalidate();
+                    }
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    removeCallbacks(longPress);
+                    RectF hit = pressed;
+                    pressed = null;
+                    invalidate();
+                    if (longDone || hit == null) return true;
+                    if (hit == zlink) openZlink();
+                    else if (hit == dzikir) {
+                        openIntent(new Intent(h, DzikirActivity.class).putExtra("period",
+                                h.loc.dzikirPagi() ? DzikirActivity.PAGI : DzikirActivity.PETANG));
+                    } else if (hit == quran) openIntent(new Intent(h, QuranActivity.class));
+                    else if (hit == stats) Notice.info(h, h.getString(R.string.home_drive_reset_hint));
+                    return true;
+                case MotionEvent.ACTION_CANCEL:
+                    removeCallbacks(longPress);
+                    pressed = null;
+                    invalidate();
+                    return true;
+            }
+            return super.onTouchEvent(e);
         }
 
-        void fix(Location l, int kmh) {
-            lat = l.getLatitude();
-            lon = l.getLongitude();
-            if (kmh >= 5 && l.hasBearing()) bearing = l.getBearing();
-            int w = getWidth(), ht = getHeight();
-            if (w == 0) return;
-            float[] at = arrowAt(w, ht);
-            float turn = Math.abs(((bearing - drawnBearing) % 360 + 540) % 360 - 180);
-            if (Float.isNaN(drawnX) || Math.abs(at[0] - drawnX) >= 2 || Math.abs(at[1] - drawnY) >= 2 || turn >= 4) invalidate();
+        void openZlink() {
+            Intent i = h.getPackageManager().getLaunchIntentForPackage(ZLINK);
+            if (i == null) Notice.info(h, h.getString(R.string.home_zlink_missing));
+            else openIntent(i);
         }
 
-        private final float[] at = new float[2];
-
-        /** Posisi panah di kartu untuk lokasi sekarang, relatif ke peta yang sedang tergambar. */
-        float[] arrowAt(int w, int ht) {
-            float ox = w / 2f, oy = ht * .55f;
-            at[0] = ox;
-            at[1] = oy;
-            if (!on || snap == null || Double.isNaN(lat)) return at;
-            double[] f = tileXY(lat, lon);
-            int size = tileSize();
-            at[0] = ox + (float) ((f[0] - snapFx) * size);
-            at[1] = oy + (float) ((f[1] - snapFy) * size);
-            return at;
-        }
-
-        int tileSize() { return Math.round(256 * Math.max(1f, h.dp * .85f)); }
-
-        double[] tileXY(double la, double lo) {
-            int n = 1 << ZOOM;
-            double rad = Math.toRadians(la);
-            return new double[]{(lo + 180) / 360 * n, (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * n};
+        void fill(Canvas c, RectF r, float radius, boolean accent) {
+            boolean down = pressed == r;
+            p.setStyle(Paint.Style.FILL);
+            p.setColor(accent ? (AMBER & 0x00FFFFFF) | (down ? 0x59000000 : 0x26000000)
+                    : down ? (AMBER & 0x00FFFFFF) | 0x40000000 : Theme.light() ? 0x0D000000 : 0x0FFFFFFF);
+            c.drawRoundRect(r, radius, radius, p);
+            p.setStyle(Paint.Style.STROKE);
+            p.setStrokeWidth(h.px(1));
+            p.setColor(accent ? (AMBER & 0x00FFFFFF) | 0x73000000 : Theme.light() ? 0x1F000000 : 0x1FFFFFFF);
+            c.drawRoundRect(r, radius, radius, p);
+            p.setStyle(Paint.Style.FILL);
         }
 
         @Override protected void onDraw(Canvas c) {
             int w = getWidth(), ht = getHeight();
-            if (w == 0 || ht == 0) return;
-            double la = !Double.isNaN(lat) ? lat : h.loc.lat, lo = !Double.isNaN(lat) ? lon : h.loc.lon;
-            float ox = w / 2f, oy = ht * .55f;
-            if (on && !(la == 0 && lo == 0)) {
-                double[] f = tileXY(la, lo);
-                int size = tileSize();
-                float dx = snap == null ? 0 : (float) ((f[0] - snapFx) * size), dy = snap == null ? 0 : (float) ((f[1] - snapFy) * size);
-                if (snap == null || snap.getWidth() != w || snap.getHeight() != ht || dirty
-                        || Math.abs(dx) > w * .25f || Math.abs(dy) > ht * .25f) {
-                    build(w, ht, f[0], f[1], size);
-                }
-                c.drawBitmap(snap, 0, 0, null);
-                ox += (float) ((f[0] - snapFx) * size);
-                oy += (float) ((f[1] - snapFy) * size);
-            } else {
-                c.drawColor(Theme.light() ? 0xFFE8E6E1 : 0xFF161A20); // sudut bulat dari kartu (setClipToOutline)
-            }
-            drawnX = ox;
-            drawnY = oy;
-            drawnBearing = bearing;
+            float pad = h.px(16), gap = h.px(12), inner = w - pad * 2;
+            float zh = Math.min(h.px(96), ht * .3f), bh = Math.min(h.px(92), ht * .26f);
+            zlink.set(pad, pad, w - pad, pad + zh);
+            dzikir.set(pad, ht - pad - bh, pad + (inner - gap) / 2, ht - pad);
+            quran.set(dzikir.right + gap, dzikir.top, w - pad, ht - pad);
+            stats.set(pad, zlink.bottom + gap, w - pad, dzikir.top - gap);
 
-            // Panah posisi.
-            float r = h.px(15);
-            p.setStyle(Paint.Style.FILL);
-            p.setColor((AMBER & 0x00FFFFFF) | 0x40000000);
-            c.drawCircle(ox, oy, r * 1.6f, p);
-            c.save();
-            c.rotate(bearing, ox, oy);
-            arrow.rewind();
-            arrow.moveTo(ox, oy - r);
-            arrow.lineTo(ox + r * .72f, oy + r * .8f);
-            arrow.lineTo(ox, oy + r * .38f);
-            arrow.lineTo(ox - r * .72f, oy + r * .8f);
-            arrow.close();
+            // Zlink.
+            fill(c, zlink, h.px(18), true);
+            float ic = zh * .5f, ix = zlink.left + h.px(18), iy = zlink.centerY() - ic / 2;
+            box.set(ix, iy, ix + ic, iy + ic);
             p.setColor(AMBER);
-            c.drawPath(arrow, p);
-            p.setStyle(Paint.Style.STROKE);
-            p.setStrokeWidth(h.px(1.5f));
+            c.drawRoundRect(box, ic * .24f, ic * .24f, p);
+            // Ikon: HP dengan sinyal ke mobil.
+            float pw = ic * .32f, ph = ic * .56f, pcx = box.centerX() - ic * .1f, pcy = box.centerY();
             p.setColor(INK);
-            c.drawPath(arrow, p);
-            c.restore();
-            t.setColor(Theme.light() ? 0x99000000 : 0x99FFFFFF);
-            c.drawText(on ? "© OpenStreetMap © CARTO" : h.getString(R.string.home_map_off), w - h.px(14), ht - h.px(66), t);
-        }
-
-        /** Gambar ubin di sekitar (fx, fy) ke bitmap peta; ubin yang belum ada diunduh lalu memanggil tilesChanged. */
-        void build(int w, int ht, double fx, double fy, int size) {
-            if (snap == null || snap.getWidth() != w || snap.getHeight() != ht) {
-                if (snap != null) snap.recycle();
-                snap = Bitmap.createBitmap(w, ht, Bitmap.Config.RGB_565);
+            box.set(pcx - pw / 2, pcy - ph / 2, pcx + pw / 2, pcy + ph / 2);
+            c.drawRoundRect(box, h.px(2.5f), h.px(2.5f), p);
+            p.setColor(AMBER);
+            box.inset(h.px(2.2f), h.px(3.5f));
+            c.drawRect(box, p);
+            p.setColor(INK);
+            p.setStyle(Paint.Style.STROKE);
+            p.setStrokeWidth(h.px(2));
+            p.setStrokeCap(Paint.Cap.ROUND);
+            for (int k = 1; k <= 2; k++) {
+                float r = ic * (.1f + .1f * k);
+                box.set(pcx + pw / 2 - r * .2f - r, pcy - r, pcx + pw / 2 - r * .2f + r, pcy + r);
+                c.drawArc(box, -45, 90, false, p);
             }
-            snapFx = fx;
-            snapFy = fy;
-            dirty = false;
-            Canvas c = new Canvas(snap);
-            c.drawColor(Theme.light() ? 0xFFE8E6E1 : 0xFF161A20);
-            int n = 1 << ZOOM;
-            float ox = w / 2f, oy = ht * .55f;
-            int x0 = (int) Math.floor(fx - ox / size), x1 = (int) Math.floor(fx + (w - ox) / size);
-            int y0 = (int) Math.floor(fy - oy / size), y1 = (int) Math.floor(fy + (ht - oy) / size);
-            for (int ty = y0; ty <= y1; ty++) {
-                for (int tx = x0; tx <= x1; tx++) {
-                    if (ty < 0 || ty >= n) continue;
-                    int wx = ((tx % n) + n) % n;
-                    int left = Math.round(ox + (float) ((tx - fx) * size)), top = Math.round(oy + (float) ((ty - fy) * size));
-                    dst.set(left, top, left + size, top + size);
-                    Bitmap b = tileFor(wx, ty);
-                    if (b != null) c.drawBitmap(b, null, dst, tile);
+            p.setStyle(Paint.Style.FILL);
+            float tx = ix + ic + h.px(16);
+            t.setTextAlign(Paint.Align.LEFT);
+            t.setTypeface(medium);
+            t.setLetterSpacing(0);
+            t.setTextSize(Math.min(h.sp(24), zh * .3f));
+            t.setColor(TEXT);
+            c.drawText(h.getString(R.string.home_zlink), tx, zlink.centerY() - h.px(2), t);
+            t.setTypeface(regular);
+            t.setTextSize(Math.min(h.sp(14), zh * .18f));
+            t.setColor(DIM);
+            c.drawText(h.getString(R.string.home_zlink_sub), tx, zlink.centerY() + t.getTextSize() + h.px(4), t);
+            t.setTextAlign(Paint.Align.RIGHT);
+            t.setTextSize(Math.min(h.sp(30), zh * .4f));
+            t.setColor(AMBER);
+            Paint.FontMetrics fm = t.getFontMetrics();
+            c.drawText("›", zlink.right - h.px(20), zlink.centerY() - (fm.ascent + fm.descent) / 2, t);
+
+            // Perjalanan.
+            if (pressed == stats) fill(c, stats, h.px(14), false);
+            t.setTextAlign(Paint.Align.LEFT);
+            t.setTypeface(medium);
+            t.setLetterSpacing(0.2f);
+            t.setTextSize(Math.min(h.sp(11), stats.height() * .14f));
+            t.setColor(TEXT & 0x00FFFFFF | 0xB3000000);
+            float sy = stats.top + h.px(6) + t.getTextSize();
+            c.drawText(h.getString(R.string.home_drive), stats.left + h.px(4), sy, t);
+            long ms = tripMovingMs;
+            double hours = ms / 3_600_000.0;
+            String[] names = {h.getString(R.string.home_drive_dist), h.getString(R.string.home_drive_time),
+                    h.getString(R.string.home_drive_avg), h.getString(R.string.home_drive_max)};
+            String[] vals = {String.format(Locale.US, "%.1f", tripM / 1000), String.format(Locale.US, "%d:%02d",
+                    ms / 3_600_000, ms / 60_000 % 60), hours > 0.01 ? String.valueOf(Math.round(tripM / 1000 / hours)) : "0",
+                    String.valueOf(tripMaxKmh)};
+            String[] units = {"km", "", h.getString(R.string.home_speed_unit).toLowerCase(Lang.locale()),
+                    h.getString(R.string.home_speed_unit).toLowerCase(Lang.locale())};
+            float col = (stats.width() - h.px(8)) / 4f, avail = stats.bottom - sy - h.px(10);
+            // Label + angka setinggi ±70 dp, di tengah sisa tinggi area perjalanan.
+            float rest = Math.min(avail, h.px(84)), top = sy + h.px(10) + (avail - rest) / 2;
+            for (int i = 0; i < 4; i++) {
+                float x = stats.left + h.px(4) + i * col;
+                t.setTypeface(medium);
+                t.setLetterSpacing(0.15f);
+                t.setTextSize(Math.min(h.sp(10), rest * .2f));
+                t.setColor(DIM);
+                c.drawText(names[i], x, top + t.getTextSize(), t);
+                float ny = top + t.getTextSize() + h.px(6);
+                t.setTypeface(light);
+                t.setLetterSpacing(0);
+                t.setTextSize(Math.min(h.sp(36), Math.min(rest * .55f, col * .44f)));
+                t.setColor(TEXT);
+                float vy = ny + t.getTextSize() * .9f;
+                c.drawText(vals[i], x, vy, t);
+                float vw = t.measureText(vals[i]);
+                t.setTypeface(regular);
+                t.setTextSize(Math.min(h.sp(12), rest * .18f));
+                t.setColor(DIM);
+                if (!units[i].isEmpty() && x + vw + h.px(4) + t.measureText(units[i]) < x + col) {
+                    c.drawText(units[i], x + vw + h.px(4), vy, t);
                 }
             }
-        }
 
-        Bitmap tileFor(int x, int y) {
-            String key = ZOOM + "/" + x + "/" + y;
-            boolean dark = !Theme.light();
-            String mem = (dark ? "d" : "l") + key;
-            Bitmap b = TILES.get(mem);
-            if (b != null || loading.contains(mem)) return b;
-            loading.add(mem);
-            File dir = new File(h.createDeviceProtectedStorageContext().getCacheDir(), "osm");
-            TILE_NET.execute(() -> {
-                Bitmap got = null;
-                File f = new File(dir, (dark ? "dark_" : "light_") + ZOOM + "_" + x + "_" + y + ".png");
-                try {
-                    if (f.isFile() && System.currentTimeMillis() - f.lastModified() < 30L * 86_400_000L) {
-                        got = BitmapFactory.decodeFile(f.getPath());
-                    }
-                    if (got == null) {
-                        // CARTO basemap (data OpenStreetMap): sudah gelap/terang, jadi tidak perlu diolah di headunit.
-                        String url = "https://" + "abcd".charAt((x + y) & 3) + ".basemaps.cartocdn.com/"
-                                + (dark ? "dark_all/" : "light_all/") + key + ".png";
-                        HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
-                        c.setConnectTimeout(10_000);
-                        c.setReadTimeout(15_000);
-                        c.setRequestProperty("User-Agent", "KlikDash/" + version() + " (Android headunit launcher)");
-                        try (InputStream in = c.getInputStream()) {
-                            dir.mkdirs();
-                            File tmp = new File(dir, f.getName() + ".tmp");
-                            try (OutputStream out = new FileOutputStream(tmp)) {
-                                byte[] buf = new byte[8192];
-                                for (int k; (k = in.read(buf)) > 0; ) out.write(buf, 0, k);
-                            }
-                            if (tmp.renameTo(f)) got = BitmapFactory.decodeFile(f.getPath());
-                        } finally {
-                            c.disconnect();
-                        }
-                        prune(dir);
-                    }
-                } catch (Exception ignored) { // tanpa internet: kotak kosong, dicoba lagi saat digambar ulang
-                }
-                Bitmap done = got;
-                h.runOnUiThread(() -> {
-                    loading.remove(mem);
-                    if (done != null) {
-                        TILES.put(mem, done);
-                        tilesChanged();
-                    }
-                });
-            });
-            return null;
-        }
-    }
-
-    private String version;
-
-    String version() {
-        if (version == null) {
-            try {
-                version = h.getPackageManager().getPackageInfo(h.getPackageName(), 0).versionName;
-            } catch (PackageManager.NameNotFoundException e) {
-                version = "?";
+            // Zikir & Al-Quran.
+            if (icQuran == null) {
+                icQuran = h.getDrawable(R.drawable.ic_quran).mutate();
+                icDzikir = h.getDrawable(R.drawable.ic_dzikir_tile).mutate();
             }
+            boolean pagi = h.loc.dzikirPagi();
+            button(c, dzikir, icDzikir, h.getString(pagi ? R.string.home_quick_dzikir_pagi : R.string.home_quick_dzikir_petang),
+                    h.getString(DzikirService.playing ? R.string.home_media_playing : R.string.home_quick_dzikir_sub));
+            String qsub = QuranService.playing ? String.format(Locale.US, "▶ %d : %d", QuranService.surah, QuranService.ayah)
+                    : h.getString(R.string.home_quick_quran_sub);
+            button(c, quran, icQuran, h.getString(R.string.home_quick_quran), qsub);
         }
-        return version;
-    }
 
-    /** Simpanan ubin dibatasi ±400 berkas (±10 MB); yang paling lama dibuang. */
-    private static void prune(File dir) {
-        File[] fs = dir.listFiles();
-        if (fs == null || fs.length <= 400) return;
-        java.util.Arrays.sort(fs, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
-        for (int i = 0; i < fs.length - 300; i++) fs[i].delete();
+        void button(Canvas c, RectF r, Drawable icon, String title, String sub) {
+            fill(c, r, h.px(16), false);
+            float s = Math.min(h.px(30), r.height() * .36f), x = r.left + h.px(14), y = r.centerY() - s / 2;
+            icon.setBounds(Math.round(x), Math.round(y), Math.round(x + s), Math.round(y + s));
+            icon.setTint(AMBER);
+            icon.draw(c);
+            float tx = x + s + h.px(12), avail = r.right - tx - h.px(10);
+            t.setTextAlign(Paint.Align.LEFT);
+            t.setTypeface(medium);
+            t.setLetterSpacing(0);
+            t.setTextSize(Math.min(h.sp(17), r.height() * .22f));
+            t.setColor(TEXT);
+            CharSequence e = TextUtils.ellipsize(title, t, avail, TextUtils.TruncateAt.END);
+            c.drawText(e, 0, e.length(), tx, r.centerY() - h.px(2), t);
+            t.setTypeface(regular);
+            t.setTextSize(Math.min(h.sp(12.5f), r.height() * .17f));
+            t.setColor(DIM);
+            e = TextUtils.ellipsize(sub, t, avail, TextUtils.TruncateAt.END);
+            c.drawText(e, 0, e.length(), tx, r.centerY() + t.getTextSize() + h.px(4), t);
+        }
     }
 
     // ---------------------------------------------------------------- kartu musik
@@ -1358,7 +1202,7 @@ final class HomeCards {
                 c.restore();
                 p.setShader(null);
                 Drawable own = s == MediaNotch.QURAN ? h.getDrawable(R.drawable.ic_quran)
-                        : s == MediaNotch.DZIKIR ? h.getDrawable(R.drawable.ic_dzikir) : null;
+                        : s == MediaNotch.DZIKIR ? h.getDrawable(R.drawable.ic_dzikir_tile) : null;
                 if (own != null) {
                     int is = Math.round(art * .42f);
                     own.setBounds(Math.round(box.centerX() - is / 2f), Math.round(box.centerY() - is / 2f),
@@ -1739,7 +1583,7 @@ final class HomeCards {
         refreshWeather(false);
         root.removeCallbacks(weatherTick);
         root.postDelayed(weatherTick, WEATHER_MS);
-        showPlace();
+        if (drive != null) drive.invalidate();
         sky.invalidate();
     }
 
@@ -1765,7 +1609,7 @@ final class HomeCards {
     void minute() {
         if (sky != null) sky.invalidate();
         if (weather != null) weather.invalidate();
-        showPlace();
+        if (drive != null) drive.invalidate();
     }
 
     // ---------------------------------------------------------------- wallpaper

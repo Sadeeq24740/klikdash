@@ -109,4 +109,39 @@
     <string name="split_warn_text">Menjalankan dua aplikasi bersamaan butuh RAM dan prosesor lebih. Di sebagian headunit, terutama yang RAM-nya kecil, layar bisa tersendat atau salah satu aplikasi tertutup sendiri. Hasilnya tergantung spesifikasi headunit masing-masing. Lanjutkan?</string>
     <string name="split_warn_go">LANJUTKAN</string>
     <string name="split_warn_never">JANGAN INGATKAN LAGI</string>
+
+    <!-- Home kartu (HomeCards) -->
+    <string name="home_side_home">HOME</string>
+    <string name="home_side_settings">PENGATURAN</string>
+    <string name="home_side_apps">APLIKASI</string>
+    <string name="home_trip">TRIP</string>
+    <string name="home_next_prayer">SHOLAT BERIKUTNYA</string>
+    <string name="home_in_hm">dalam %1$d j %2$d mnt</string>
+    <string name="home_in_m">dalam %1$d mnt</string>
+    <string name="home_map">PETA</string>
+    <string name="home_place_home">Rumah</string>
+    <string name="home_place_work">Kantor</string>
+    <string name="home_place_hint">Tekan lama %1$s untuk menyimpan lokasi sekarang</string>
+    <string name="home_place_saved">Lokasi %1$s disimpan</string>
+    <string name="home_media_none_app">Musik</string>
+    <string name="home_media_player">Pemutar</string>
+    <string name="home_media_idle">Tidak ada yang diputar</string>
+    <string name="home_media_idle_hint">Ketuk ▶ untuk melanjutkan musik</string>
+    <string name="home_media_allow">Izinkan akses notifikasi</string>
+    <string name="home_media_allow_hint">Ketuk di sini untuk menampilkan musik</string>
+    <string name="home_media_playing">Sedang diputar</string>
+    <string name="home_media_paused">Dijeda</string>
+    <string name="home_wallpaper_failed">Gambar tidak bisa dipakai</string>
+    <string name="home_wallpaper_no_picker">Tidak ada aplikasi galeri untuk memilih gambar</string>
+    <string name="quick_wallpaper">WALLPAPER</string>
+    <string name="quick_wallpaper_pick">PILIH GAMBAR</string>
+    <string name="quick_wallpaper_default">BAWAAN</string>
+    <string name="wx_clear">Cerah</string>
+    <string name="wx_partly">Cerah berawan</string>
+    <string name="wx_cloudy">Berawan</string>
+    <string name="wx_fog">Berkabut</string>
+    <string name="wx_drizzle">Gerimis</string>
+    <string name="wx_rain">Hujan</string>
+    <string name="wx_snow">Salju</string>
+    <string name="wx_storm">Badai petir</string>
 </resources>

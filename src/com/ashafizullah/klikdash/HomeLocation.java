@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import static com.ashafizullah.klikdash.HomeActivity.DIM;
+import static com.ashafizullah.klikdash.HomeActivity.TEXT;
 import static com.ashafizullah.klikdash.HomeActivity.ID;
 import static com.ashafizullah.klikdash.HomeActivity.WARN;
 import static com.ashafizullah.klikdash.HomeActivity.show;
@@ -217,7 +218,8 @@ final class HomeLocation {
             if (kmh < 3) kmh = 0; // diam: abaikan goyangan GPS
             lastKmh = kmh;
             lastKmhAt = speedAt;
-            show(h.speed, String.valueOf(kmh), kmh > 100 ? WARN : DIM); // di atas batas tol
+            show(h.speed, String.valueOf(kmh), kmh > 100 ? WARN : TEXT); // di atas batas tol
+            if (h.cards != null) h.cards.onFix(l, kmh);
         }
         @Override public void onStatusChanged(String p, int s, Bundle b) { }
         @Override public void onProviderEnabled(String p) { }
@@ -228,6 +230,7 @@ final class HomeLocation {
     final Runnable speedStale = new Runnable() {
         @Override public void run() {
             if (SystemClock.elapsedRealtime() - speedAt > 5000) show(h.speed, "--", DIM);
+            if (h.cards != null && h.cards.arc != null) h.cards.arc.invalidate();
             h.speed.postDelayed(this, 1000);
         }
     };

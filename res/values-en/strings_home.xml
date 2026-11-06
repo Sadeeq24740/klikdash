@@ -108,4 +108,39 @@
     <string name="split_warn_text">Running two apps together needs more memory and processing power. On some headunits, especially those with little RAM, the screen may stutter or one of the apps may close by itself. How well it works depends on each headunit\'s specs. Continue?</string>
     <string name="split_warn_go">CONTINUE</string>
     <string name="split_warn_never">DON\'T REMIND ME AGAIN</string>
+
+    <!-- Home kartu (HomeCards) -->
+    <string name="home_side_home">HOME</string>
+    <string name="home_side_settings">SETTINGS</string>
+    <string name="home_side_apps">APPS</string>
+    <string name="home_trip">TRIP</string>
+    <string name="home_next_prayer">NEXT PRAYER</string>
+    <string name="home_in_hm">in %1$d hr %2$d min</string>
+    <string name="home_in_m">in %1$d min</string>
+    <string name="home_map">MAP</string>
+    <string name="home_place_home">Home</string>
+    <string name="home_place_work">Work</string>
+    <string name="home_place_hint">Long-press %1$s to save your current location</string>
+    <string name="home_place_saved">%1$s location saved</string>
+    <string name="home_media_none_app">Music</string>
+    <string name="home_media_player">Player</string>
+    <string name="home_media_idle">Nothing playing</string>
+    <string name="home_media_idle_hint">Tap ▶ to resume your music</string>
+    <string name="home_media_allow">Allow notification access</string>
+    <string name="home_media_allow_hint">Tap here to show your music</string>
+    <string name="home_media_playing">Now playing</string>
+    <string name="home_media_paused">Paused</string>
+    <string name="home_wallpaper_failed">That image can\'t be used</string>
+    <string name="home_wallpaper_no_picker">No gallery app to pick an image</string>
+    <string name="quick_wallpaper">WALLPAPER</string>
+    <string name="quick_wallpaper_pick">CHOOSE IMAGE</string>
+    <string name="quick_wallpaper_default">DEFAULT</string>
+    <string name="wx_clear">Clear</string>
+    <string name="wx_partly">Partly cloudy</string>
+    <string name="wx_cloudy">Cloudy</string>
+    <string name="wx_fog">Foggy</string>
+    <string name="wx_drizzle">Drizzle</string>
+    <string name="wx_rain">Rain</string>
+    <string name="wx_snow">Snow</string>
+    <string name="wx_storm">Thunderstorm</string>
 </resources>

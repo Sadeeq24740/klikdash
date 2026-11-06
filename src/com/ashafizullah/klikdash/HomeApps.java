@@ -121,8 +121,8 @@ final class HomeApps {
         String la = slotLabel[a];
         saveSlot(a, slotCn[b], slotLabel[b]);
         saveSlot(b, ca, la);
-        h.tiles[a].invalidate();
-        h.tiles[b].invalidate();
+        if (h.tiles[a] != null) h.tiles[a].invalidate();
+        if (h.tiles[b] != null) h.tiles[b].invalidate();
     }
 
     /**

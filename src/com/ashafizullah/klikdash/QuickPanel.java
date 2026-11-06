@@ -119,6 +119,15 @@ final class QuickPanel extends FrameLayout {
             SplitScreen.warn(h, h.drawer::openSplit);
         }));
 
+        // Wallpaper home: gambar dari galeri, atau kembali ke latar gelap bawaan.
+        section(R.string.quick_wallpaper, key(h.getString(R.string.quick_wallpaper_pick), false, () -> {
+            close();
+            h.pickWallpaper();
+        }), key(h.getString(R.string.quick_wallpaper_default), false, () -> {
+            close();
+            h.cards.clearWallpaper();
+        }));
+
         section(R.string.quick_screen, key(h.getString(R.string.quick_saver), false, () -> {
             close();
             h.showSaver();
@@ -227,6 +236,7 @@ final class QuickPanel extends FrameLayout {
         int raw = Settings.System.getInt(h.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 128);
         float g = (toGamma(raw) - floorGamma) / (1 - floorGamma);
         brightness.set(Math.max(0, Math.round(g * BRIGHT_STEPS)), BRIGHT_STEPS);
+        if (h.cards != null) h.cards.levels();
     }
 
     private void step(Level l, int d) {
@@ -234,7 +244,7 @@ final class QuickPanel extends FrameLayout {
         if (l == volume) setVolume(v); else setBrightness(v);
     }
 
-    private void toggleMute() {
+    void toggleMute() {
         if (mcu) {
             boolean on = !mcuMuted();
             h.sendBroadcast(new Intent(NWD_MUTE).putExtra("extra_mute", on));
@@ -245,7 +255,7 @@ final class QuickPanel extends FrameLayout {
         refresh();
     }
 
-    private void setVolume(int v) {
+    void setVolume(int v) {
         if (mcu) {
             if (v > 0 && mcuMuted()) h.sendBroadcast(new Intent(NWD_MUTE).putExtra("extra_mute", false));
             h.sendBroadcast(new Intent(NWD_VOLUME).putExtra("extra_volume", v));
@@ -309,7 +319,7 @@ final class QuickPanel extends FrameLayout {
      * tidak bisa diminta tanpa membuka Pengaturan, jadi tanpa izin itu lewat ADB lokal (seperti penyetelan lain), yang
      * sekaligus memberi izinnya untuk berikutnya. Tanpa ADB: halaman izin "Ubah setelan sistem" dibuka sekali.
      */
-    private void setBrightness(int step) {
+    void setBrightness(int step) {
         int v = fromGamma(floorGamma + (1 - floorGamma) * step / BRIGHT_STEPS);
         brightness.set(step, BRIGHT_STEPS);
         if (Settings.System.canWrite(h)) {

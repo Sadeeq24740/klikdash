@@ -15,7 +15,7 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 /**
- * Pengingat masuk waktu sholat, hanya notifikasi (tanpa adzan). AlarmManager.RTC (tidak membangunkan headunit yang
+ * Pengingat masuk waktu sholat: notifikasi, dan azan bila dinyalakan ({@link Azan}). AlarmManager.RTC (tidak membangunkan headunit yang
  * tidur): alarm yang baru terkirim saat headunit bangun dan sudah lewat lebih dari {@link #LATE_MS} diabaikan. Tiap
  * alarm menjadwalkan waktu berikutnya; home memanggil {@link #schedule} saat dibuka, saat lokasi atau jam berubah.
  * Home tampil: notifikasi KlikDash ({@link Notice}); aplikasi lain di depan: Notice melayang (izin tampil di atas
@@ -38,7 +38,7 @@ public class PrayerAlarm extends BroadcastReceiver {
         PendingIntent old = PendingIntent.getBroadcast(c, 0, new Intent(c, PrayerAlarm.class), PendingIntent.FLAG_NO_CREATE);
         if (old != null) am.cancel(old);
         SharedPreferences p = prefs(c);
-        if (!enabled(p)) return;
+        if (!enabled(p) && !Azan.enabled(p)) return; // pengingat dan azan sama-sama mati
         double[] loc = location(p);
         Calendar now = Calendar.getInstance();
         for (int day = 0; day < 2; day++) {
@@ -67,12 +67,15 @@ public class PrayerAlarm extends BroadcastReceiver {
 
     @Override public void onReceive(Context c, Intent i) {
         long at = i.getLongExtra("at", 0), now = System.currentTimeMillis();
-        if (enabled(prefs(c)) && Math.abs(now - at) <= LATE_MS) {
+        SharedPreferences p = prefs(c);
+        if ((enabled(p) || Azan.enabled(p)) && Math.abs(now - at) <= LATE_MS) {
             if (!Clock.ok(c)) { // jam belum terbukti benar: coba lagi semenit lagi, selama belum lewat LATE_MS
                 arm(c, i.getIntExtra("i", 0), at, now + 60_000);
                 return;
             }
-            notify(c, i.getIntExtra("i", 0), at);
+            if (enabled(p)) notify(c, i.getIntExtra("i", 0), at);
+            // Azan hanya tepat waktu (≤ 2 menit terlambat), bukan saat headunit baru bangun 9 menit kemudian.
+            if (Math.abs(now - at) <= 2 * 60_000L) Azan.onPrayer(c, i.getIntExtra("i", 0));
         }
         schedule(c);
     }

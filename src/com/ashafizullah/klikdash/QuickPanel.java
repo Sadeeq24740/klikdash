@@ -119,6 +119,16 @@ final class QuickPanel extends FrameLayout {
             SplitScreen.warn(h, h.drawer::openSplit);
         }));
 
+        // Azan otomatis (fail MP3 sendiri) dan susunan kartu home.
+        section(R.string.quick_azan, key(h.getString(R.string.quick_azan_open), false, () -> {
+            close();
+            h.openAzan();
+        }));
+        section(R.string.quick_layout, key(h.getString(R.string.quick_layout_edit), false, () -> {
+            close();
+            h.cards.edit.start();
+        }));
+
         // Wallpaper home: gambar dari galeri, atau kembali ke latar gelap bawaan.
         section(R.string.quick_wallpaper, key(h.getString(R.string.quick_wallpaper_pick), false, () -> {
             close();

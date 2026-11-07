@@ -662,6 +662,8 @@ public class HomeActivity extends Activity {
 
     @Override public void onBackPressed() {
         if (safe) return;
+        if (azanSheet != null) { azanSheet.close(); return; }
+        if (cards != null && cards.edit.on) { cards.edit.finish(); return; }
         if (quick.isOpen()) quick.close();
         else if (drawer.isOpen()) drawer.close();
     }
@@ -850,8 +852,21 @@ public class HomeActivity extends Activity {
         }
     }
 
+    /** Tetapan azan (panel cepat › AZAN), lembar di atas home. */
+    AzanSheet azanSheet;
+
+    void openAzan() {
+        if (azanSheet != null || cards == null) return;
+        azanSheet = new AzanSheet(this);
+        cards.root.addView(azanSheet, MATCH, MATCH);
+    }
+
     @Override protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
+        if ((req == AzanSheet.PICK || req == AzanSheet.PICK_SUBUH) && azanSheet != null) {
+            azanSheet.picked(req, res == RESULT_OK && data != null ? data.getData() : null);
+            return;
+        }
         if (req == HomeCards.PICK_WALLPAPER && res == RESULT_OK && data != null && data.getData() != null && cards != null) {
             cards.setWallpaper(data.getData());
         }

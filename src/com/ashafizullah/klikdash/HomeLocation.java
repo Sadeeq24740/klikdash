@@ -230,7 +230,7 @@ final class HomeLocation {
     final Runnable speedStale = new Runnable() {
         @Override public void run() {
             if (SystemClock.elapsedRealtime() - speedAt > 5000) show(h.speed, "--", DIM);
-            if (h.cards != null && h.cards.arc != null) h.cards.arc.invalidate();
+            if (h.cards != null) h.cards.speedStale();
             h.speed.postDelayed(this, 1000);
         }
     };

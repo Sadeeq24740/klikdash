@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="adbwifi_offer_title">BUKA ADB TANPA KOMPUTER</string>
+    <string name="adbwifi_offer_start">Mula</string>
+
+    <string name="adbwifi_channel">Buka ADB</string>
+    <string name="adbwifi_title">Buka ADB tanpa komputer</string>
+    <string name="adbwifi_waiting">Hidupkan Wireless debugging, ketik \"Pair device with pairing code\", kemudian ketik TAIP KOD di sini.</string>
+    <string name="adbwifi_found">Dialog pairing dijumpai. Ketik TAIP KOD, kemudian masukkan kod 6 digitnya.</string>
+    <string name="adbwifi_enter">TAIP KOD</string>
+    <string name="adbwifi_code_hint">Kod pairing 6 digit</string>
+    <string name="adbwifi_bad_code">Kodnya 6 digit, seperti yang tertulis di dialog pairing. Ketik TAIP KOD sekali lagi.</string>
+    <string name="adbwifi_pairing">Memasangkan…</string>
+    <string name="adbwifi_connecting">Dipasangkan. Menyambung ADB…</string>
+    <string name="adbwifi_wrong_code">Kod salah atau dialog pairing sudah tertutup. Buka semula \"Pair device with pairing code\", kemudian taip kod yang baharu.</string>
+    <string name="adbwifi_no_dialog">Dialog pairing tidak dijumpai. Pastikan headunit disambungkan ke WiFi dan dialognya masih terbuka. Boleh juga taip port dan kodnya, contohnya 37215 482913.</string>
+    <string name="adbwifi_pair_failed">Pairing gagal. Buka semula \"Pair device with pairing code\", kemudian taip kod yang baharu.</string>
+    <string name="adbwifi_connect_failed">Pairing berjaya, tetapi ADB belum dapat dihubungi. Pastikan Wireless debugging masih hidup, kemudian cuba lagi dari KlikDash.</string>
+
+    <string name="adbwifi_offer_heading">Buka melalui Wireless debugging</string>
+    <string name="adbwifi_offer_intro">Headunit ini belum membuka ADB untuk aplikasi (port 5555). KlikDash boleh membukanya sendiri, tanpa komputer:</string>
+    <string name="adbwifi_offer_step1">Sambungkan headunit ke WiFi, contohnya hotspot telefon.</string>
+    <string name="adbwifi_offer_step2">Di Pilihan pembangun, hidupkan Wireless debugging, kemudian ketik \"Pair device with pairing code\".</string>
+    <string name="adbwifi_offer_step3">Biarkan dialog kod terbuka. Tarik panel pemberitahuan, ketik TAIP KOD pada pemberitahuan KlikDash, kemudian masukkan kod 6 digitnya.</string>
+    <string name="adbwifi_offer_outro">Selepas selesai, Wireless debugging dimatikan semula secara automatik.</string>
+    <string name="help_fail_tag">ADA MASALAH</string>
+    <string name="help_scan">IMBAS DENGAN TELEFON UNTUK VIDEO TUTORIAL</string>
+    <string name="adbwifi_offer_port_note">Jimat Kuasa memerlukan port 5555 kekal terbuka sehingga headunit dihidupkan semula. Port itu boleh dihubungi peranti lain dalam WiFi yang sama: gunakan hanya di rangkaian peribadi.</string>
+    <string name="adbwifi_offer_insecure_note">PERHATIAN: ADB headunit ini tidak meminta kebenaran. Selagi port 5555 terbuka, sesiapa sahaja dalam WiFi yang sama boleh mengawal headunit tanpa ditanya.</string>
+</resources>

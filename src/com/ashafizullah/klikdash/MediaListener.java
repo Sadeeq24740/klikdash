@@ -114,6 +114,9 @@ public class MediaListener extends NotificationListenerService {
         notifyListeners();
     }
 
+    /** Akses notifikasi sudah ada dan sesi media dipantau. */
+    static boolean connected() { return msm != null; }
+
     static boolean playing(MediaController c) {
         PlaybackState s = c != null ? c.getPlaybackState() : null;
         return s != null && (s.getState() == PlaybackState.STATE_PLAYING || s.getState() == PlaybackState.STATE_BUFFERING);

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zikir pagi & petang (DzikirActivity). Isi bacaan ada di assets/dzikir.json. -->
+<resources>
+    <string name="dzikir_title">ZIKIR</string>
+    <string name="dzikir_title_pagi">ZIKIR PAGI</string>
+    <string name="dzikir_title_petang">ZIKIR PETANG</string>
+    <string name="dzikir_pagi">PAGI</string>
+    <string name="dzikir_petang">PETANG</string>
+    <string name="dzikir_step">BACAAN %1$02d / %2$02d  ·  %3$s  ·  %4$d×</string>
+    <string name="dzikir_prev">‹  SEBELUMNYA</string>
+    <string name="dzikir_next">SETERUSNYA  ›</string>
+    <string name="dzikir_done">SELESAI</string>
+    <string name="dzikir_hint_finished">ALHAMDULILLAH  ·  KETIK UNTUK MENGULANG</string>
+    <string name="dzikir_hint_full">SELESAI  ·  KETIK UNTUK TERUSKAN</string>
+    <string name="dzikir_hint_count">KETIK UNTUK MENGIRA</string>
+    <string name="dzikir_short_full">TERUS</string>
+    <string name="dzikir_short_count">KETIK</string>
+    <string name="dzikir_play">▶  MAIN</string>
+    <string name="dzikir_pause">❚❚  JEDA</string>
+    <string name="dzikir_mode_continue">TERUSKAN</string>
+    <string name="dzikir_mode_single">SATU BACAAN</string>
+    <string name="dzikir_audio_menu">Audio zikir</string>
+    <string name="dzikir_after">SELEPAS BACAAN SELESAI DIMAINKAN</string>
+    <string name="dzikir_hint_continue">Setiap bacaan dimainkan mengikut bilangannya dan pengira turut bertambah, kemudian terus ke bacaan seterusnya yang belum selesai sehingga zikir tamat.</string>
+    <string name="dzikir_hint_single">Bacaan yang dipilih dimainkan mengikut bilangannya, kemudian berhenti. Pilih bacaan lain dalam senarai dan ketik MAIN.</string>
+    <string name="dzikir_audio_caption">AUDIO</string>
+    <string name="dzikir_audio_redownload">MUAT TURUN SEMULA AUDIO</string>
+    <string name="dzikir_audio_busy">SEDANG MEMUAT TURUN…</string>
+    <string name="dzikir_audio_credit">Ayat Al-Quran dibacakan oleh Mishary Rashid Alafasy (everyayah.com); bacaan lain rakaman KlikDash.</string>
+    <string name="dzikir_audio_title">Muat turun audio zikir?</string>
+    <string name="dzikir_audio_desc">Audio zikir pagi dan petang (±6 MB) dimuat turun sekali, kemudian boleh dimainkan tanpa internet sambil memandu.</string>
+    <string name="dzikir_audio_download">MUAT TURUN</string>
+    <string name="dzikir_update_title">Ada pembaikan audio zikir</string>
+    <string name="dzikir_update_desc">Sebahagian rakaman zikir sudah dibaiki. Muat turun sekarang? Hanya rakaman yang berubah akan dimuat turun.</string>
+    <string name="dzikir_audio_downloading">MEMUAT TURUN AUDIO  %1$d / %2$d</string>
+    <string name="dzikir_audio_failed">MUAT TURUN GAGAL  ·  SEMAK INTERNET KEMUDIAN KETIK MAIN</string>
+    <string name="dzikir_audio_none">AUDIO BELUM DIMUAT TURUN  ·  KETIK MAIN</string>
+    <string name="dzikir_audio_missing">AUDIO TIADA  ·  MUAT TURUN SEMULA DENGAN BUTANG DI KIRI</string>
+    <string name="dzikir_audio_ready">AUDIO SEDIA  ·  KETIK MAIN UNTUK MENDENGAR</string>
+    <string name="dzikir_now">BACAAN %1$02d  ·  PUSINGAN %2$d / %3$d</string>
+    <string name="dzikir_n_pagi">Zikir pagi</string>
+    <string name="dzikir_n_petang">Zikir petang</string>
+    <string name="dzikir_n_rep">Pusingan %1$d daripada %2$d</string>
+    <string name="dzikir_n_missing">Audio belum dimuat turun — buka Zikir untuk memuat turun</string>
+</resources>

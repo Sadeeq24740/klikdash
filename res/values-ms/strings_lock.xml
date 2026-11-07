@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lock_enter">MASUKKAN PIN</string>
+    <string name="lock_new">PIN BAHARU</string>
+    <string name="lock_confirm">ULANG PIN</string>
+    <string name="lock_wrong">PIN SALAH</string>
+    <string name="lock_too_many">TERLALU BANYAK KALI SALAH</string>
+    <string name="lock_wait">CUBA LAGI DALAM %1$d SAAT</string>
+    <string name="lock_mismatch">PIN TIDAK SAMA</string>
+    <string name="lock_reset_title">LUPA PIN</string>
+    <string name="lock_reset_hint">TAIP KOD %1$s UNTUK MEMADAM PIN</string>
+    <string name="lock_reset_wrong">KOD SALAH</string>
+    <string name="lock_lock">Kunci home</string>
+    <string name="lock_unlock">Buka kunci home</string>
+    <string name="lock_locked">Berkunci. Ketik ikon mangga untuk membuka.</string>
+    <string name="lock_unlocked">Kunci dibuka</string>
+    <string name="lock_reset_done">PIN dipadam dan home tidak berkunci lagi</string>
+
+    <string name="settings_lock_title">KUNCI SKRIN</string>
+    <string name="settings_lock_desc_off">Kunci home dengan PIN 4 digit supaya kanak-kanak tidak membuka aplikasi atau mengubah tetapan. Jam dan waktu solat tetap dipaparkan. Selepas PIN ditetapkan, ikon mangga muncul di bilah sisi.</string>
+    <string name="settings_lock_desc_on">PIN aktif. Ketik ikon mangga di home untuk mengunci; untuk membuka, ketik sekali lagi dan masukkan PIN. Lupa PIN: tahan ⌫ selama 10 saat di skrin PIN.</string>
+    <string name="settings_lock_set">TETAPKAN PIN</string>
+    <string name="settings_lock_change">TUKAR PIN</string>
+    <string name="settings_lock_remove">PADAM PIN</string>
+    <string name="settings_lock_saved">PIN disimpan. Ketik ikon mangga di home untuk mengunci.</string>
+    <string name="settings_lock_removed">PIN dipadam</string>
+</resources>

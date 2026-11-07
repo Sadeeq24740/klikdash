@@ -12,15 +12,15 @@ import android.os.LocaleList;
 import java.util.Locale;
 
 /**
- * Bahasa antarmuka (Indonesia bawaan, atau English), dipilih di Pengaturan dan tidak mengikuti bahasa sistem.
- * Teks ada di res/values (Indonesia) dan res/values-en. Tanpa AndroidX, maka seperti AppCompat sebelum API 33:
+ * Bahasa antarmuka (Indonesia bawaan, Melayu, atau English), dipilih di Pengaturan dan tidak mengikuti bahasa sistem.
+ * Teks ada di res/values (Indonesia), res/values-ms (Melayu), dan res/values-en. Tanpa AndroidX, maka seperti AppCompat sebelum API 33:
  * tiap aktivitas dan layanan memanggil {@link #wrap} di attachBaseContext; receiver dan context aplikasi memakai
  * {@code Lang.wrap(c).getString(...)}. Berganti bahasa menaikkan {@link Theme#version}, sehingga aktivitas lain
  * dibangun ulang lewat {@link Theme#stale} seperti saat tema berganti. Disimpan di prefs DE "klikdash" (key "lang").
  */
 final class Lang {
-    static final String ID = "id", EN = "en";
-    static final String[] CODES = {ID, EN};
+    static final String ID = "id", MS = "ms", EN = "en";
+    static final String[] CODES = {ID, MS, EN};
 
     static String code;
     private static Locale locale = new Locale("id", "ID");
@@ -40,7 +40,7 @@ final class Lang {
 
     static String saved(Context c) {
         String s = prefs(c).getString("lang", ID);
-        return EN.equals(s) ? EN : ID;
+        return EN.equals(s) || MS.equals(s) ? s : ID;
     }
 
     /** Muat bahasa tersimpan tanpa aktivitas (mis. dari BroadcastReceiver). */
@@ -65,7 +65,14 @@ final class Lang {
         return base.createConfigurationContext(conf);
     }
 
-    static Locale localeOf(String code) { return EN.equals(code) ? Locale.US : new Locale("id", "ID"); }
+    static Locale localeOf(String code) {
+        return EN.equals(code) ? Locale.US : MS.equals(code) ? new Locale("ms", "MY") : new Locale("id", "ID");
+    }
+
+    /** Nama bahasa untuk tombol di Pengaturan. */
+    static int nameRes(String code) {
+        return EN.equals(code) ? R.string.lang_en : MS.equals(code) ? R.string.lang_ms : R.string.lang_id;
+    }
 
     private static void set(Context c, String code) {
         if (code.equals(Lang.code)) return;
@@ -76,6 +83,7 @@ final class Lang {
         hijriMonths = r.getStringArray(R.array.hijri_months);
         days = r.getStringArray(R.array.day_names);
         months = r.getStringArray(R.array.month_names);
+        Hijri.reset();
         Theme.version++;
     }
 

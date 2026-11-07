@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Teks bersama dalam Bahasa Melayu (Malaysia). -->
+<resources>
+    <string name="app_quran">Al-Quran</string>
+    <string name="app_dzikir">Zikir</string>
+    <string name="app_ask">Tanya AI</string>
+    <string name="app_settings">Tetapan KlikDash</string>
+
+    <string name="channel_prayer">Peringatan waktu solat</string>
+    <string name="channel_quran">Murattal</string>
+    <string name="channel_dzikir">Zikir</string>
+
+    <string name="common_cancel">Batal</string>
+    <string name="common_save">Simpan</string>
+    <string name="common_delete">Padam</string>
+    <string name="common_close">Tutup</string>
+
+    <string-array name="prayer_names">
+        <item>SUBUH</item>
+        <item>ZOHOR</item>
+        <item>ASAR</item>
+        <item>MAGHRIB</item>
+        <item>ISYAK</item>
+    </string-array>
+    <string-array name="hijri_months">
+        <item>MUHARAM</item>
+        <item>SAFAR</item>
+        <item>RABIULAWAL</item>
+        <item>RABIULAKHIR</item>
+        <item>JAMADILAWAL</item>
+        <item>JAMADILAKHIR</item>
+        <item>REJAB</item>
+        <item>SYAABAN</item>
+        <item>RAMADAN</item>
+        <item>SYAWAL</item>
+        <item>ZULKAEDAH</item>
+        <item>ZULHIJAH</item>
+    </string-array>
+    <string-array name="day_names">
+        <item>AHAD</item>
+        <item>ISNIN</item>
+        <item>SELASA</item>
+        <item>RABU</item>
+        <item>KHAMIS</item>
+        <item>JUMAAT</item>
+        <item>SABTU</item>
+    </string-array>
+    <string-array name="month_names">
+        <item>JANUARI</item>
+        <item>FEBRUARI</item>
+        <item>MAC</item>
+        <item>APRIL</item>
+        <item>MEI</item>
+        <item>JUN</item>
+        <item>JULAI</item>
+        <item>OGOS</item>
+        <item>SEPTEMBER</item>
+        <item>OKTOBER</item>
+        <item>NOVEMBER</item>
+        <item>DISEMBER</item>
+    </string-array>
+</resources>

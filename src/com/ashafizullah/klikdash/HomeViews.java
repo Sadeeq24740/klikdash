@@ -1,12 +1,7 @@
 package com.ashafizullah.klikdash;
 
 import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.PixelFormat;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.view.DragEvent;
@@ -233,78 +228,6 @@ final class HomeViews {
         }
     }
 
-    /** Penggaris 24 jam dengan jarum di waktu sekarang. Digambar ulang sekali per menit. */
-    static class Gauge extends View {
-        final HomeActivity h;
-        final Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Paint num = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Path needle = new Path();
-
-        Gauge(HomeActivity h) {
-            super(h);
-            this.h = h;
-            num.setTypeface(h.fMono);
-            num.setTextSize(h.sp(10));
-            num.setLetterSpacing(0.1f);
-        }
-
-        @Override protected void onDraw(Canvas c) {
-            Calendar cal = Calendar.getInstance();
-            float frac = (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)) / 1440f;
-            float w = getWidth() - h.px(2), x0 = h.px(1), base = h.px(26), now = x0 + w * frac;
-
-            line.setStrokeWidth(h.px(1));
-            for (int hr = 0; hr <= 24; hr++) {
-                float x = x0 + w * hr / 24f;
-                boolean major = hr % 6 == 0;
-                line.setColor(x <= now ? AMBER : FAINT);
-                c.drawLine(x, base - (major ? h.px(14) : h.px(7)), x, base, line);
-            }
-            line.setColor(FAINT);
-            c.drawLine(x0, base, x0 + w, base, line);
-            line.setColor(AMBER);
-            line.setStrokeWidth(h.px(3));
-            c.drawLine(x0, base, now, base, line);
-
-            needle.rewind();
-            needle.moveTo(now - h.px(6), base - h.px(24));
-            needle.lineTo(now + h.px(6), base - h.px(24));
-            needle.lineTo(now, base - h.px(16));
-            needle.close();
-            line.setStyle(Paint.Style.FILL);
-            c.drawPath(needle, line);
-            line.setStyle(Paint.Style.STROKE);
-
-            // Penanda waktu sholat: belah ketupat kecil di bawah garis, yang berikutnya amber.
-            int[] pray = h.loc.pray;
-            if (pray != null) {
-                int next = h.loc.nextPrayer(cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE));
-                float r = h.px(3.5f), cy = base + h.px(6);
-                line.setStyle(Paint.Style.FILL);
-                for (int i = 0; i < pray.length; i++) {
-                    float x = x0 + w * pray[i] / 1440f;
-                    line.setColor(i == next ? AMBER : TEXT);
-                    needle.rewind();
-                    needle.moveTo(x, cy - r);
-                    needle.lineTo(x + r, cy);
-                    needle.lineTo(x, cy + r);
-                    needle.lineTo(x - r, cy);
-                    needle.close();
-                    c.drawPath(needle, line);
-                }
-                line.setStyle(Paint.Style.STROKE);
-            }
-
-            num.setColor(DIM);
-            float y = base + h.px(20);
-            for (int hr = 0; hr <= 24; hr += 6) {
-                String s = String.format(Locale.US, "%02d", hr);
-                num.setTextAlign(hr == 0 ? Paint.Align.LEFT : hr == 24 ? Paint.Align.RIGHT : Paint.Align.CENTER);
-                c.drawText(s, x0 + w * hr / 24f, y, num);
-            }
-        }
-    }
-
     /** Lima waktu sholat + hitung mundur ke waktu berikutnya. Digambar ulang sekali per menit. */
     static class PrayerView extends View {
         final HomeActivity h;
@@ -391,31 +314,5 @@ final class HomeViews {
             CharSequence p = TextUtils.ellipsize(place, info, avail, TextUtils.TruncateAt.END);
             c.drawText(p, 0, p.length(), w, h.px(96 * k), info);
         }
-    }
-
-    /** Tanda potong tipis di empat sudut layar, gaya panel instrumen. */
-    static class CropMarks extends Drawable {
-        final HomeActivity h;
-        final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-        CropMarks(HomeActivity h) {
-            this.h = h;
-            p.setColor(FAINT);
-            p.setStrokeWidth(h.px(1.5f));
-        }
-
-        @Override public void draw(Canvas c) {
-            Rect b = getBounds();
-            int i = h.px(9), l = h.px(14);
-            float L = b.left + i, T = b.top + i, R = b.right - i, B = b.bottom - i;
-            c.drawLine(L, T, L + l, T, p); c.drawLine(L, T, L, T + l, p);
-            c.drawLine(R, T, R - l, T, p); c.drawLine(R, T, R, T + l, p);
-            c.drawLine(L, B, L + l, B, p); c.drawLine(L, B, L, B - l, p);
-            c.drawLine(R, B, R - l, B, p); c.drawLine(R, B, R, B - l, p);
-        }
-
-        @Override public void setAlpha(int a) { }
-        @Override public void setColorFilter(ColorFilter f) { }
-        @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
     }
 }

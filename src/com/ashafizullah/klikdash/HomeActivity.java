@@ -95,7 +95,6 @@ public class HomeActivity extends Activity {
 
     static void show(TextView t, String s) { show(t, s, t.getCurrentTextColor()); }
 
-    HomeViews.Gauge gauge;
     HomeViews.PrayerView prayerView;
 
     final BroadcastReceiver timeRx = new BroadcastReceiver() {
@@ -190,8 +189,8 @@ public class HomeActivity extends Activity {
         LinearLayout drawerView = drawer.build();
         drawerView.setVisibility(View.GONE);
         root.addView(home, MATCH, MATCH);
+        // Notch pemutar digantikan kartu musik di home kartu; objeknya tetap ada untuk pelacakan jeda (MediaNotch).
         notch = new MediaNotch(this, fBold, fMonoBold);
-        root.addView(notch, MediaNotch.params(dp)); // di bawah laci aplikasi, yang menutupinya saat dibuka
         quick = new QuickPanel(this);
         root.addView(drawerView, MATCH, MATCH);
         root.addView(quick, MATCH, MATCH);
@@ -283,6 +282,7 @@ public class HomeActivity extends Activity {
 
     void mediaChanged() {
         notch.refresh();
+        cards.mediaChanged();
         if (saverShown()) saver.invalidate();
     }
 
@@ -303,6 +303,7 @@ public class HomeActivity extends Activity {
     void refreshTiles() {
         invalidateTiles();
         notch.refresh();
+        cards.mediaChanged();
     }
 
     void invalidateTiles() {
@@ -337,6 +338,7 @@ public class HomeActivity extends Activity {
         refreshDefaultHome();
         loc.startSpeed();
         resumed = true;
+        cards.start();
         poke();
         update.resume();
     }
@@ -600,6 +602,7 @@ public class HomeActivity extends Activity {
         loc.stopSpeed();
         prayerView.stopTicking();
         status.stop();
+        cards.stop();
         BeamHub.removeListener(beamRx);
         QuranService.listeners.remove(onQuran);
         DzikirService.listeners.remove(onDzikir);
@@ -617,6 +620,7 @@ public class HomeActivity extends Activity {
     final BroadcastReceiver wakeRx = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
             wakeAt = SystemClock.elapsedRealtime();
+            HomeCards.resetTrip(); // ACC on: trip baru
             reloadPrefs();
             refreshTiles();
             updateTime();
@@ -658,6 +662,8 @@ public class HomeActivity extends Activity {
 
     @Override public void onBackPressed() {
         if (safe) return;
+        if (azanSheet != null) { azanSheet.close(); return; }
+        if (cards != null && cards.edit.on) { cards.edit.finish(); return; }
         if (quick.isOpen()) quick.close();
         else if (drawer.isOpen()) drawer.close();
     }
@@ -791,7 +797,7 @@ public class HomeActivity extends Activity {
         show(date, getString(R.string.home_date, now.get(Calendar.DAY_OF_MONTH), Lang.months[now.get(Calendar.MONTH)],
                 now.get(Calendar.YEAR)));
         show(hijri, Hijri.today(now.getTimeInMillis(), prefs.getInt("hijriOffset", 0)));
-        gauge.invalidate();
+        cards.minute();
         if (saverShown()) saver.tick();
         int dz = loc.dzikirPagi() ? 1 : 0; // ubin Dzikir berganti PAGI → PETANG saat Ashar, walau home terus tampil
         if (dz != dzikirState) {
@@ -825,243 +831,45 @@ public class HomeActivity extends Activity {
         }
     }
 
-    static final float SPEED_RATIO = 0.43f; // ukuran angka kecepatan terhadap jam
-    /** Jarak terkecil jam–kecepatan (dp): garis pemisah 1dp dengan 12dp di tiap sisinya; ikut dihitung saat jam diukur. */
-    static final int SPEED_GAP = 25;
+    /** Home kartu (lihat HomeCards): bilah samping, jam, sholat, peta, musik, volume & kecerahan. */
+    HomeCards cards;
 
     View buildHome() {
-        int n = HomeApps.tileCount(prefs);
-        shown = n - 1;
-        // Lebih sedikit ubin (9, 6, 4): panel jam lebih besar. Jam, kecepatan, tanggal, dan jadwal sholat membesar
-        // sejauh tinggi layar masih cukup bersama penggaris 24 jam; batas itu sudah tercapai di 9 ubin, jadi 6 dan 4
-        // memakai panel jam yang sama dan lebar sisanya untuk ubin yang lebih besar.
-        int big = n == 12 ? 0 : 1;
-        float k = 1 + 0.06f * big; // skala tulisan panel jam selain jam dan kecepatan
-        float panelH = portrait ? hDp * (0.42f + 0.06f * big) : hDp;
-        boolean shortPanel = panelH < 560; // tidak cukup tinggi untuk penggaris 24 jam
+        shown = HomeApps.tileCount(prefs) - 1; // batas slot di bilah samping
+        cards = new HomeCards(this);
+        return cards.build();
+    }
 
-        // Jam sebesar mungkin: jam dan kecepatan 3 digit (ukurannya 0,43 × jam) muat berdampingan di lebar panel, dan
-        // sebanding tinggi layar. Lebar diukur dengan digit terlebar (angka font ini tidak sama lebar) pada ukuran sp.
-        Paint pm = new Paint();
-        pm.setTypeface(fHeavy);
-        pm.setTextSize(100 * sp);
-        float digit = 0;
-        for (char d = '0'; d <= '9'; d++) digit = Math.max(digit, pm.measureText(String.valueOf(d)));
-        float per100 = (4 * digit + pm.measureText(":") + 3 * digit * SPEED_RATIO) / dp;
-        // Jam tidak boleh mendesak isi panel lain keluar layar: tinggi baris jam (tanpa padding font) dibatasi sisa
-        // tinggi panel sesudah baris atas, tanggal, jadwal sholat, dan penggaris.
-        Paint.FontMetrics fmc = pm.getFontMetrics();
-        float clockLine = (fmc.descent - fmc.ascent) / 100 / dp; // tinggi baris jam, dp per sp
-        // Tema kilap: panel jam jadi kartu kaca dengan jarak dalam `inset` di tiap sisi; jarak ke ubin menyempit.
-        // `edge`: jarak tepi layar ke panel jam dan ubin.
-        int inset = Theme.gloss() ? 16 : 0, sep = Theme.gloss() ? 13 : 57, edge = 24;
-        float spDp = sp / dp, availH = (portrait ? panelH - 24 : screenH - 2 * edge) - 2 * inset;
-        // Tombol JADIKAN TAMPILAN UTAMA (48 + jarak 14) ikut dihitung bila tampil; lihat refreshDefaultHome.
-        reservedDefault = knownDefault != null && !knownDefault;
-        float fixed = 48 + 14 * spDp + 42 + 1.3f * (18 + (panelH < 560 ? 28 : 36) + 13) * k * spDp + 14 + 104 * k
-                + (shortPanel ? 0 : 74) + (reservedDefault ? 62 : 0);
-        float clockFit = (availH - fixed - 8) / clockLine;
-        // Layar pendek (mis. 1280×720 dengan density 180 dan huruf sistem besar): jam sudah di ukuran terkecil (56) dan
-        // isi panel tetap terlalu tinggi, sehingga di tema kilap bingkai kartu memotong penggaris dan hitung mundur
-        // sholat. Rapatkan tepi layar dan bingkai kartu supaya ruangnya setidaknya sama dengan tema datar; di portrait
-        // panel jam meminjam jarak garis pemisah (20 di tema datar, 6 di tema kilap) dari ubin.
-        int grow = 0;
-        if (Theme.gloss() && clockFit < 56) {
-            int was = inset;
-            inset = 10;
-            if (portrait) grow = 2 * (20 - 6); else edge = 12;
-            availH += 2 * (was - inset) + (portrait ? grow : 2 * (24 - edge));
-            clockFit = (availH - fixed - 8) / clockLine;
+    /** Pilih wallpaper dari galeri (panel cepat). */
+    void pickWallpaper() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            userLaunch = true;
+            startActivityForResult(i, HomeCards.PICK_WALLPAPER);
+        } catch (RuntimeException e) {
+            userLaunch = false;
+            Notice.info(this, getString(R.string.home_wallpaper_no_picker));
         }
+    }
 
-        // Landscape: panel jam di kiri, 34% lebar; dengan ubin lebih sedikit selebar yang dibutuhkan jam (sampai 55%).
-        // Portrait: panel jam di atas, ubin di bawah.
-        float leftDp = portrait ? wDp - 48 : big == 0 ? Math.max(260, Math.min(480, wDp * 0.34f))
-                : Math.max(260, Math.min(wDp * 0.55f,
-                        Math.max(wDp * 0.34f, Math.min(150 + 40 * big, clockFit) * per100 / 100 + 64 + SPEED_GAP + 2 * inset)));
-        float clockSp = Math.min(150 + 40 * big, (leftDp - 24 - SPEED_GAP - 2 * inset) / per100 * 100);
-        if (big == 0) clockSp = Math.min(clockSp, panelH * 0.21f);
-        clockSp = Math.max(56, Math.min(clockSp, clockFit));
+    /** Tetapan azan (panel cepat › AZAN), lembar di atas home. */
+    AzanSheet azanSheet;
 
-        float gridW = portrait ? wDp - 48 : wDp - 2 * edge - leftDp - sep;
-        cols = n == 4 ? 2 : n == 12 && !portrait && gridW >= 600 ? 4 : 3;
-        if (n == 6) { // 3×2 atau 2×3: mana yang ubinnya paling mendekati persegi
-            float gridH = portrait ? screenH - panelH - grow - (Theme.gloss() ? 13 : 41) : screenH - 2 * edge;
-            double c2 = Math.log((gridW - 12) / 2f / ((gridH - 24) / 3f)), c3 = Math.log((gridW - 24) / 3f / ((gridH - 12) / 2f));
-            cols = Math.abs(c2) < Math.abs(c3) ? 2 : 3;
+    void openAzan() {
+        if (azanSheet != null || cards == null) return;
+        azanSheet = new AzanSheet(this);
+        cards.root.addView(azanSheet, MATCH, MATCH);
+    }
+
+    @Override protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if ((req == AzanSheet.PICK || req == AzanSheet.PICK_SUBUH) && azanSheet != null) {
+            azanSheet.picked(req, res == RESULT_OK && data != null ? data.getData() : null);
+            return;
         }
-        rows = (n + cols - 1) / cols;
-
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(portrait ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
-        int pad = px(edge);
-        row.setPadding(pad, pad, pad, pad);
-        if (!Theme.gloss()) row.setBackground(new HomeViews.CropMarks(this));
-
-        LinearLayout left = new LinearLayout(this);
-        left.setOrientation(LinearLayout.VERTICAL);
-        if (inset > 0) {
-            left.setBackground(Theme.card());
-            left.setPadding(px(inset), px(inset), px(inset), px(inset));
+        if (req == HomeCards.PICK_WALLPAPER && res == RESULT_OK && data != null && data.getData() != null && cards != null) {
+            cards.setWallpaper(data.getData());
         }
-
-        LinearLayout top = new LinearLayout(this);
-        top.setOrientation(LinearLayout.HORIZONTAL);
-        // Model dari sistem (mis. "K2401/K2401P/k2401M" → K2401), bukan ditulis mati.
-        String model = android.os.Build.MODEL.split("[/ ]")[0].toUpperCase(Locale.US);
-        // Menu ☰ di kiri: panel cepat (volume, kecerahan, Pengaturan KlikDash), yang juga keluar dari kiri dan bisa
-        // digeser dari tepi kiri. Garisnya rata dengan tepi kiri jam; kotak sentuh 48dp walau ikonnya kecil.
-        gear = new QuickPanel.Icon(this);
-        gear.setContentDescription(getString(R.string.quick_title));
-        gear.setOnClickListener(v -> quick.open());
-        top.addView(gear, new LinearLayout.LayoutParams(px(40), px(48)));
-        TextView tag = text("KLIKDASH  ·  " + model, fMono, 12, DIM);
-        tag.setLetterSpacing(0.25f);
-        top.addView(tag, new LinearLayout.LayoutParams(0, WRAP, 1f));
-        // Kunci layar (PIN di Pengaturan): gembok muncul hanya bila PIN sudah diatur, lihat refreshLock.
-        lockIcon = new ScreenLock.Icon(this);
-        lockIcon.setOnClickListener(v -> toggleLock());
-        top.addView(lockIcon, new LinearLayout.LayoutParams(px(48), px(48)));
-        top.setGravity(Gravity.CENTER_VERTICAL);
-        left.addView(top);
-
-        // Kondisi headunit: suhu CPU, RAM, dan penyimpanan terpakai (diperbarui tiap 5 detik, lihat HomeStatus).
-        status.diskLabel = getString(leftDp < 380 ? R.string.home_disk_short : R.string.home_disk);
-        LinearLayout stats = new LinearLayout(this);
-        stats.setOrientation(LinearLayout.HORIZONTAL);
-        status.temp = text("", fMonoBold, 11, DIM);
-        status.ram = text("", fMonoBold, 11, DIM);
-        status.disk = text("", fMonoBold, 11, DIM);
-        for (TextView t : new TextView[]{status.temp, status.ram, status.disk}) {
-            t.setLetterSpacing(0.15f);
-            LinearLayout.LayoutParams sl = new LinearLayout.LayoutParams(WRAP, WRAP);
-            if (t != status.temp) sl.leftMargin = px(18);
-            stats.addView(t, sl);
-        }
-        left.addView(stats);
-
-        // Muncul hanya bila KlikDash belum jadi tampilan utama (lihat refreshDefaultHome).
-        makeDefault = new HomeViews.Button(this, getString(R.string.home_make_default), true);
-        makeDefault.setOnClickListener(v -> HomeSwitch.makeDefault(this, prefs, this::refreshDefaultHome));
-        makeDefault.setVisibility(View.GONE);
-        LinearLayout.LayoutParams ml = new LinearLayout.LayoutParams(MATCH, px(48));
-        ml.topMargin = px(14);
-        left.addView(makeDefault, ml);
-        left.addView(new View(this), new LinearLayout.LayoutParams(1, 0, 1f));
-
-        // Jam di kiri, kecepatan (GPS) di kanan pada garis dasar yang sama, seperti panel instrumen. Garis pemisah tipis
-        // dan warna DIM (aksen di atas 100, lihat HomeLocation) supaya kecepatan tidak terbaca sebagai bagian dari jam.
-        LinearLayout clockRow = new LinearLayout(this);
-        clockRow.setOrientation(LinearLayout.HORIZONTAL);
-        clockRow.setGravity(Gravity.BOTTOM);
-        clock = text("00:00", fHeavy, clockSp, TEXT);
-        clock.setLetterSpacing(-0.01f);
-        clockRow.addView(clock);
-        // Format 12 jam: AM/PM kecil di samping jam, sejajar satuan kecepatan.
-        ampm = text("", fMonoBold, 16 * k, DIM);
-        ampm.setLetterSpacing(0.2f);
-        LinearLayout.LayoutParams al = new LinearLayout.LayoutParams(WRAP, WRAP);
-        al.leftMargin = px(12);
-        al.bottomMargin = px(14);
-        clockRow.addView(ampm, al);
-        clockRow.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1f));
-        LinearLayout speedBox = new LinearLayout(this);
-        speedBox.setOrientation(LinearLayout.HORIZONTAL);
-        // Pemisah setinggi kolom kecepatan, tepat di kirinya; ruang sisa tetap di antara jam dan pemisah.
-        View rule = new View(this);
-        rule.setBackgroundColor(LINE);
-        speedBox.addView(rule, new LinearLayout.LayoutParams(px(1), MATCH));
-        LinearLayout speedCol = new LinearLayout(this);
-        speedCol.setOrientation(LinearLayout.VERTICAL);
-        speedCol.setGravity(Gravity.END);
-        speed = text("--", fHeavy, clockSp * SPEED_RATIO, DIM);
-        speed.setGravity(Gravity.END);
-        // Selebar 3 digit terlebar (sudah dihitung di per100): pemisah tidak bergeser saat angkanya berubah. Lebar tetap
-        // ini juga menggantikan WRAP yang dulu perlu supaya angka 2–3 digit tidak terpotong di kanan.
-        speed.setMinWidth(Math.round(3 * digit * clockSp * SPEED_RATIO / 100));
-        speedCol.addView(speed, new LinearLayout.LayoutParams(WRAP, WRAP));
-        TextView unit = text(getString(R.string.home_speed_unit), fMono, 10 * k, DIM);
-        unit.setLetterSpacing(0.25f);
-        LinearLayout.LayoutParams ul = new LinearLayout.LayoutParams(WRAP, WRAP);
-        ul.topMargin = px(4);
-        speedCol.addView(unit, ul);
-        LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(WRAP, WRAP);
-        cl.leftMargin = px(12);
-        speedBox.addView(speedCol, cl);
-        LinearLayout.LayoutParams sbl = new LinearLayout.LayoutParams(WRAP, WRAP);
-        sbl.leftMargin = px(12);
-        sbl.bottomMargin = px(10);
-        clockRow.addView(speedBox, sbl);
-        left.addView(clockRow, new LinearLayout.LayoutParams(MATCH, WRAP));
-
-        View bar = new View(this);
-        bar.setBackgroundColor(AMBER);
-        LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(px(84), px(6));
-        bl.topMargin = px(14);
-        bl.bottomMargin = px(22);
-        left.addView(bar, bl);
-
-        day = text("", fMonoBold, 18 * k, AMBER);
-        day.setLetterSpacing(0.3f);
-        left.addView(day);
-
-        date = text("", fMed, (panelH < 560 ? 28 : 36) * k, TEXT);
-        date.setLetterSpacing(0.03f);
-        LinearLayout.LayoutParams dl = new LinearLayout.LayoutParams(WRAP, WRAP);
-        dl.topMargin = px(6);
-        left.addView(date, dl);
-
-        hijri = text("", fMono, 13 * k, DIM);
-        hijri.setLetterSpacing(0.2f);
-        hijri.setOnClickListener(v -> openSettings());
-        LinearLayout.LayoutParams hl = new LinearLayout.LayoutParams(WRAP, WRAP);
-        hl.topMargin = px(8);
-        left.addView(hijri, hl);
-
-        left.addView(new View(this), new LinearLayout.LayoutParams(1, 0, 1f));
-        prayerView = new HomeViews.PrayerView(this, k);
-        left.addView(prayerView, new LinearLayout.LayoutParams(MATCH, px(104 * k)));
-        gauge = new HomeViews.Gauge(this);
-        LinearLayout.LayoutParams gl = new LinearLayout.LayoutParams(MATCH, px(56));
-        gl.topMargin = px(18);
-        left.addView(gauge, gl);
-        if (shortPanel) gauge.setVisibility(View.GONE);
-
-        row.addView(left, portrait ? new LinearLayout.LayoutParams(MATCH, px(panelH - 24 + grow))
-                : new LinearLayout.LayoutParams(px(leftDp), MATCH));
-
-        View div = new View(this);
-        div.setBackgroundColor(LINE);
-        LinearLayout.LayoutParams vl = portrait ? new LinearLayout.LayoutParams(MATCH, px(1))
-                : new LinearLayout.LayoutParams(px(1), MATCH);
-        int half = (sep - 1) / 2; // garis 1dp di tengah jarak panel jam dan ubin
-        if (portrait) { vl.topMargin = px(Theme.gloss() ? 6 : 20); vl.bottomMargin = vl.topMargin; }
-        else { vl.leftMargin = px(half); vl.rightMargin = px(sep - 1 - half); }
-        if (Theme.gloss()) div.setVisibility(View.INVISIBLE); // tepi kartu kaca sudah memisahkan
-        row.addView(div, vl);
-
-        LinearLayout g = new LinearLayout(this);
-        g.setOrientation(LinearLayout.VERTICAL);
-        int gap = px(12);
-        for (int r = 0; r < rows; r++) {
-            LinearLayout line = new LinearLayout(this);
-            line.setOrientation(LinearLayout.HORIZONTAL);
-            for (int c = 0; c < cols; c++) {
-                int idx = r * cols + c;
-                if (idx > shown) break;
-                if (idx == shown) idx = HomeApps.SLOTS; // ubin "Semua" selalu terakhir
-                HomeViews.Tile t = new HomeViews.Tile(this, idx);
-                tiles[idx] = t;
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, MATCH, 1f);
-                if (c > 0) lp.leftMargin = gap;
-                line.addView(t, lp);
-            }
-            LinearLayout.LayoutParams rl = new LinearLayout.LayoutParams(MATCH, 0, 1f);
-            if (r > 0) rl.topMargin = gap;
-            g.addView(line, rl);
-        }
-        row.addView(g, portrait ? new LinearLayout.LayoutParams(MATCH, 0, 1f) : new LinearLayout.LayoutParams(0, MATCH, 1f));
-        return row;
     }
 
     // ---------------------------------------------------------------- helpers

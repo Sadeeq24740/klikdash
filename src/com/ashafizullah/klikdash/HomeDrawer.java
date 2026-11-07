@@ -260,7 +260,7 @@ final class HomeDrawer {
         }
         if (pickSlot >= 0) {
             h.apps.saveSlot(pickSlot, a.cn, null);
-            h.tiles[pickSlot].invalidate();
+            if (h.tiles[pickSlot] != null) h.tiles[pickSlot].invalidate();
         } else {
             h.apps.launch(a.cn);
         }

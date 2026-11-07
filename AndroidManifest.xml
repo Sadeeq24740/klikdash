@@ -149,6 +149,11 @@
             android:name=".DzikirService"
             android:exported="false" />
 
+        <!-- Azan otomatis saat masuk waktu sholat (fail MP3 pilihan pengguna) -->
+        <service
+            android:name=".Azan$Player"
+            android:exported="false" />
+
         <!-- Hanya untuk melihat sesi media aplikasi lain (notch pemutar di home); notifikasinya tidak dibaca -->
         <service
             android:name=".MediaListener"

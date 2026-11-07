@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_beam">Beam</string>
+    <string name="beam_no_network">Belum disambungkan ke WiFi. Sambungkan headunit ke hotspot telefon.</string>
+    <string name="beam_waiting">MENUNGGU TELEFON</string>
+    <string name="beam_connected">DISAMBUNGKAN · MENUNGGU GAMBAR</string>
+    <string name="beam_rejected">KOD SALAH DARIPADA %1$s</string>
+    <string name="beam_reconnecting">MENYAMBUNG SEMULA…</string>
+    <string name="beam_ended">SIARAN BERHENTI</string>
+    <string name="beam_error">PELAYAN GAGAL: %1$s</string>
+    <string name="beam_decoder_error">Penyahkod video gagal: %1$s</string>
+    <string name="beam_beta">BETA</string>
+    <string name="beam_receiver_hint">Imbas QR dengan kamera telefon, atau buka KlikBeam di telefon, pilih headunit ini, kemudian masukkan kod pairing di atas. Cara menyambung ada di Tetapan › KLIKBEAM.</string>
+    <string name="settings_beam_title">KLIKBEAM · BETA</string>
+    <string name="settings_beam_desc">Mirror skrin telefon ke headunit melalui WiFi. Pasang dahulu aplikasi KlikBeam di telefon (lihat di bawah).\n\nCara menyambung: sambungkan headunit ke hotspot telefon, ketik BUKA PENERIMA, kemudian dalam aplikasi KlikBeam pilih headunit ini dan masukkan kod pairing di atas, atau imbas QR-nya dengan kamera telefon supaya terus diisi. Jika headunit tidak muncul, taip alamatnya.\n\nPerhatian: mirror membuatkan telefon bekerja keras (merakam skrin, encode video, WiFi), jadi telefon boleh cepat panas dan bateri cepat habis, lebih-lebih lagi dalam kereta yang terkena terik. Letakkan telefon di tempat yang terkena penghawa dingin, dan hentikan siaran jika telefon terasa panas.</string>
+    <string name="settings_beam_code_label">KOD PAIRING</string>
+    <string name="settings_beam_addr_label">ALAMAT · JIKA HEADUNIT TIDAK MUNCUL</string>
+    <string name="settings_beam_app_title">APLIKASI KLIKBEAM DI TELEFON</string>
+    <string name="settings_beam_app_desc">Pasang dahulu aplikasi KlikBeam di telefon yang akan di-mirror. Pilih jenis telefon anda.</string>
+    <string name="settings_beam_android">ANDROID</string>
+    <string name="settings_beam_ios">IPHONE</string>
+    <string name="settings_beam_android_tag">UJIAN TERTUTUP DI PLAY STORE</string>
+    <string name="settings_beam_android_text">Imbas QR ini dengan telefon Android: halamannya mengandungi tiga langkah menyertai ujian (sertai kumpulan penguji, jadi penguji, pasang dari Play Store) berserta videonya.</string>
+    <string name="settings_beam_scan">IMBAS DENGAN TELEFON</string>
+    <string name="settings_beam_ios_tag">TERSEDIA DI APP STORE</string>
+    <string name="settings_beam_ios_text">Pasang KlikBeam dari App Store: imbas QR ini dengan kamera iPhone, kemudian ketik Dapatkan.</string>
+    <string name="settings_beam_new_code">TUKAR KOD</string>
+    <string name="settings_beam_open">BUKA PENERIMA</string>
+    <string name="beam_minimize">KECILKAN</string>
+    <string name="beam_close">TUTUP</string>
+    <string name="beam_fullscreen">SKRIN PENUH</string>
+    <string name="beam_no_overlay">Mod terapung memerlukan kebenaran untuk dipaparkan di atas aplikasi lain. Hidupkan USB debugging (Tetapan Android › Pilihan pembangun), kemudian cuba lagi.</string>
+    <string name="beam_channel">KlikBeam</string>
+    <string name="beam_notification">Mirror telefon aktif. Ketik untuk skrin penuh.</string>
+    <string name="settings_beam_auto_title">BUKA AUTOMATIK</string>
+    <string name="settings_beam_auto_desc">Penerima terbuka sendiri apabila telefon mula mirror dengan kod pairing ini: skrin penuh di home, tetingkap terapung di atas aplikasi lain seperti Maps.</string>
+    <string name="settings_beam_scan_pair">IMBAS DENGAN KAMERA TELEFON: KLIKBEAM TERUS DIISI</string>
+</resources>
